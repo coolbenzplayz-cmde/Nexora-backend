@@ -8,7 +8,7 @@
 # is used for the Gradle user home so repeated builds reuse the dependency
 # cache without baking it into the final image.
 # -----------------------------------------------------------------------------
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /workspace
 
 # Copy only the files needed to resolve dependencies first (better layer cache)
@@ -33,7 +33,7 @@ RUN mkdir -p build/extracted \
 # Uses a JRE-only Alpine base (~180 MB) instead of the full JDK (~460 MB) and
 # runs the application as a non-root user.
 # -----------------------------------------------------------------------------
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:17-jre-alpine AS runtime
 WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring
