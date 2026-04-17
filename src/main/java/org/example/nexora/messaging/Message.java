@@ -7,10 +7,10 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 /**
- * Message entity for real-time messaging
+ * Direct message between two users (conversation keyed by deterministic pair id).
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -18,32 +18,33 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "messages", indexes = {
-        @Index(name = "idx_messages_conversation_id", columnList = "conversationId"),
-        @Index(name = "idx_messages_sender_id", columnList = "senderId")
+        @Index(name = "idx_messages_conversation_id", columnList = "conversation_id"),
+        @Index(name = "idx_messages_sender_id", columnList = "sender_id"),
+        @Index(name = "idx_messages_receiver_id", columnList = "receiver_id")
 })
 public class Message extends BaseEntity {
 
     @Column(name = "conversation_id", nullable = false)
-    private UUID conversationId;
+    private Long conversationId;
 
     @Column(name = "sender_id", nullable = false)
-    private UUID senderId;
+    private Long senderId;
+
+    @Column(name = "receiver_id", nullable = false)
+    private Long receiverId;
 
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "is_read")
+    private Boolean isRead = false;
+
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "message_type")
     private MessageType messageType = MessageType.TEXT;
-
-    @Column(name = "media_urls", columnDefinition = "TEXT[]")
-    private String[] mediaUrls;
-
-    @Column(name = "reply_to_id")
-    private UUID replyToId;
-
-    @Column(name = "is_edited")
-    private Boolean isEdited = false;
 
     public enum MessageType {
         TEXT,

@@ -1,9 +1,7 @@
 package org.example.nexora.common;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.nexora.ride.RideRequest;
 import org.springframework.data.domain.Page;
 
 import java.io.Serializable;
@@ -15,7 +13,6 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class PaginationResponse<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,7 +27,34 @@ public class PaginationResponse<T> implements Serializable {
     private boolean hasNext;
     private boolean hasPrevious;
 
-    public PaginationResponse(Page<RideRequest> rides) {
+    /**
+     * Build from a Spring Data {@link Page} (e.g. repository {@code findAll(Pageable)}).
+     */
+    public PaginationResponse(Page<T> page) {
+        this.data = page.getContent();
+        this.currentPage = page.getNumber() + 1;
+        this.pageSize = page.getSize();
+        this.totalItems = page.getTotalElements();
+        this.totalPages = page.getTotalPages();
+        this.first = page.isFirst();
+        this.last = page.isLast();
+        this.hasNext = page.hasNext();
+        this.hasPrevious = page.hasPrevious();
+    }
+
+    /**
+     * Build from a full in-memory list slice using zero-based page index (matches typical {@code @RequestParam} page=0).
+     */
+    public PaginationResponse(List<T> data, int zeroBasedPage, int pageSize, long totalItems) {
+        this.data = data;
+        this.pageSize = pageSize;
+        this.totalItems = totalItems;
+        this.totalPages = pageSize > 0 ? (int) Math.ceil((double) totalItems / pageSize) : 0;
+        this.currentPage = zeroBasedPage + 1;
+        this.first = zeroBasedPage == 0;
+        this.last = this.totalPages == 0 || this.currentPage >= this.totalPages;
+        this.hasNext = this.totalPages > 0 && this.currentPage < this.totalPages;
+        this.hasPrevious = zeroBasedPage > 0;
     }
 
     public static <T> PaginationResponse<T> of(List<T> data, int currentPage, int pageSize, long totalItems) {
@@ -39,7 +63,8 @@ public class PaginationResponse<T> implements Serializable {
         response.setCurrentPage(currentPage);
         response.setPageSize(pageSize);
         response.setTotalItems(totalItems);
-        response.setTotalPages((int) Math.ceil((double) totalItems / pageSize));
+        response.setTotalPages(
+                pageSize > 0 ? (int) Math.ceil((double) totalItems / pageSize) : 0);
         response.setFirst(currentPage == 1);
         response.setLast(currentPage >= response.getTotalPages());
         response.setHasNext(currentPage < response.getTotalPages());
