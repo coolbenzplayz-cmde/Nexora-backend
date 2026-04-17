@@ -1,4 +1,7 @@
 package org.example.nexora.user;
 
-public class Role {
+public enum Role {
+    USER,
+    CREATOR,
+    ADMIN
 }
