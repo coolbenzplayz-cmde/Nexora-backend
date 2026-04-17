@@ -79,6 +79,8 @@ public class KafkaConfig {
     public static final String NOTIFICATION_EVENTS_TOPIC = "nexora.notification.events";
     public static final String PAYMENT_EVENTS_TOPIC = "nexora.payment.events";
     public static final String MESSAGING_EVENTS_TOPIC = "nexora.messaging.events";
+    public static final String GAME_EVENTS_TOPIC = "nexora.game.events";
+    public static final String MEDIA_EVENTS_TOPIC = "nexora.media.events";
 
     /**
      * Producer factory for Kafka.
@@ -204,5 +206,15 @@ public class KafkaConfig {
     @Bean
     public NewTopic messagingEventsTopic() {
         return new NewTopic(MESSAGING_EVENTS_TOPIC, 3, (short) 1);
+    }
+
+    @Bean
+    public NewTopic gameEventsTopic() {
+        return new NewTopic(GAME_EVENTS_TOPIC, 3, (short) 1);
+    }
+
+    @Bean
+    public NewTopic mediaEventsTopic() {
+        return new NewTopic(MEDIA_EVENTS_TOPIC, 3, (short) 1);
     }
 }

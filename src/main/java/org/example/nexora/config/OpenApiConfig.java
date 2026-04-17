@@ -32,7 +32,7 @@ public class OpenApiConfig {
     @Value("${app.name:Nexora}")
     private String appName;
 
-    @Value("${app.description:Social Media Platform API}")
+    @Value("${app.description:Nexora super-app API — social, commerce, mobility, wallet, games, and media}")
     private String appDescription;
 
     @Value("${app.version:1.0.0}")
@@ -88,15 +88,6 @@ public class OpenApiConfig {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .description("Enter JWT token to access protected endpoints")))
-                // Common parameter descriptions
-                .schema(platformSchema() + " " + "schemas");
-    }
-
-    /**
-     * Creates custom platform-specific schemas.
-     */
-    private String platformSchema() {
-        return new String("Platform");
+                                        .description("Enter JWT token to access protected endpoints")));
     }
 }

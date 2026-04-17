@@ -1,5 +1,7 @@
 # Nexora API Documentation
 
+For the product vision and service map, see [NEXORA_ECOSYSTEM.md](./NEXORA_ECOSYSTEM.md) and [SERVICE_CATALOG.md](./SERVICE_CATALOG.md).
+
 ## Table of Contents
 1. [Authentication](#authentication)
 2. [Users](#users)
@@ -13,7 +15,9 @@
 10. [Advertising](#advertising)
 11. [AI Assistant](#ai-assistant)
 12. [Wallet](#wallet)
-13. [Admin](#admin)
+13. [Games](#games)
+14. [Media editing](#media-editing)
+15. [Admin](#admin)
 
 ## Base URL
 ```
@@ -772,6 +776,67 @@ Response (200):
     "content": [...transactions]
   }
 }
+```
+
+## Games
+
+Mini-game sessions, XP profile, and leaderboards (`org.example.nexora.game`). All routes require a JWT unless you change security rules.
+
+### Get game profile
+```http
+GET /api/games/profile
+Authorization: Bearer <token>
+```
+
+### Start session
+```http
+POST /api/games/sessions
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{ "gameCode": "arcade-runner" }
+```
+
+### Submit score
+```http
+POST /api/games/sessions/{sessionId}/score
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{ "score": 1250 }
+```
+
+### Leaderboard
+```http
+GET /api/games/leaderboard?gameCode=arcade-runner
+Authorization: Bearer <token>
+```
+
+## Media editing
+
+Async editing job tracking (`org.example.nexora.media`). Workers would consume `nexora.media.events` and update job status in a full implementation.
+
+### Create editing job
+```http
+POST /api/media/editing/jobs
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{ "jobType": "IMAGE", "sourceUri": "s3://bucket/uploads/user/123/raw.png" }
+```
+
+`jobType`: `IMAGE` | `VIDEO` | `AUDIO`
+
+### Get job
+```http
+GET /api/media/editing/jobs/{jobId}
+Authorization: Bearer <token>
+```
+
+### List my jobs
+```http
+GET /api/media/editing/jobs
+Authorization: Bearer <token>
 ```
 
 ## Admin
