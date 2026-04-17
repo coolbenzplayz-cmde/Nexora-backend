@@ -1,0 +1,35 @@
+# VCS / CI
+.git
+.gitignore
+.gitattributes
+.github
+
+# Gradle / build output
+.gradle
+build
+out
+bin
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Docs / local tooling
+README.md
+HELP.md
+render.yaml
+compose.yaml
+Dockerfile
+.dockerignore
