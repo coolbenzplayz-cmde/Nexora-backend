@@ -2,5 +2,5 @@ services:
   - type: web
     name: nexora-backend
     runtime: java
-    buildCommand: chmod +x gradlew && ./gradlew build
-    startCommand: java -jar build/libs/*.jar
+    buildCommand: /bin/sh ./gradlew build
+    startCommand: java -jar build/libs/nexora.jar

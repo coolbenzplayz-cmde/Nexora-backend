@@ -1,4 +1,4 @@
-this project let me give  a clear description of itpacd for kage org.example.nexora.auth.dto;
+package org.example.nexora.auth.dto;
 
 public class ResetPasswordRequest {
     private String token;

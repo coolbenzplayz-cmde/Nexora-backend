@@ -14,18 +14,18 @@ WORKDIR /workspace
 # Copy only the files needed to resolve dependencies first (better layer cache)
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
-RUN chmod +x gradlew && ./gradlew --no-daemon --version
+RUN /bin/sh ./gradlew --no-daemon --version
 
 # Now copy sources and build the Spring Boot jar. Tests are skipped here
 # because they are (and should be) run separately in CI.
 COPY src src
 RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew --no-daemon bootJar -x test
+    /bin/sh ./gradlew --no-daemon bootJar -x test
 
 # Extract the Spring Boot layered jar so each layer can be copied into the
 # runtime image separately, maximising Docker layer cache reuse on redeploys.
 RUN mkdir -p build/extracted \
- && (cd build/extracted && java -Djarmode=layertools -jar ../libs/*.jar extract)
+ && (cd build/extracted && java -Djarmode=layertools -jar ../libs/nexora.jar extract)
 
 # -----------------------------------------------------------------------------
 # Stage 2: Minimal runtime image.
