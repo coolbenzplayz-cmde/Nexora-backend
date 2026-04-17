@@ -9,7 +9,7 @@ COPY . .
 RUN chmod +x gradlew
 
 # Build Spring Boot app (safe full build)
-RUN ./gradlew clean build
+RUN ./gradlew build
 
 # Expose backend port
 EXPOSE 8080
