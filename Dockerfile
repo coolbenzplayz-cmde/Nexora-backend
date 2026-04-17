@@ -1,11 +1,18 @@
 FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
+
+# Copy everything into container
 COPY . .
 
+# Make Gradle wrapper executable
 RUN chmod +x gradlew
-RUN ./gradlew build -x test
 
+# Build Spring Boot app (safe full build)
+RUN ./gradlew clean build
+
+# Expose backend port
 EXPOSE 8080
 
-CMD ["java", "-jar", "build/libs/*.jar"]
+# Run the generated JAR
+CMD ["sh", "-c", "java -jar build/libs/*.jar"]
