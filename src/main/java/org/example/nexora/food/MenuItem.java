@@ -1,9 +1,15 @@
 package org.example.nexora.food;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalTime;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "menu_items")
 public class MenuItem {
@@ -47,53 +53,4 @@ public class MenuItem {
 
     @Column(name = "sort_order")
     private Integer sortOrder = 0;
-
-    public MenuItem() {}
-
-    public MenuItem(Long restaurantId, String name, BigDecimal price, String category) {
-        this.restaurantId = restaurantId;
-        this.name = name;
-        this.price = price;
-        this.category = category;
-    }
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getRestaurantId() { return restaurantId; }
-    public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
-
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
-    public Boolean getIsAvailable() { return isAvailable; }
-    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
-
-    public Integer getPreparationTimeMinutes() { return preparationTimeMinutes; }
-    public void setPreparationTimeMinutes(Integer preparationTimeMinutes) { this.preparationTimeMinutes = preparationTimeMinutes; }
-
-    public Integer getCalories() { return calories; }
-    public void setCalories(Integer calories) { this.calories = calories; }
-
-    public Boolean getIsVegetarian() { return isVegetarian; }
-    public void setIsVegetarian(Boolean isVegetarian) { this.isVegetarian = isVegetarian; }
-
-    public Boolean getIsGlutenFree() { return isGlutenFree; }
-    public void setIsGlutenFree(Boolean isGlutenFree) { this.isGlutenFree = isGlutenFree; }
-
-    public Integer getSortOrder() { return sortOrder; }
-    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

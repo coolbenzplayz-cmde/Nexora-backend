@@ -1,24 +1,15 @@
 package org.example.nexora.food.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateOrderRequest {
-    private FoodOrder order;
-    private List<OrderItem> items;
-
-    public FoodOrder getOrder() {
-        return order;
-    }
-
-    public void setOrder(FoodOrder order) {
-        this.order = order;
-    }
-
-    public List<OrderItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<OrderItem> items) {
-        this.items = items;
-    }
+    private org.example.nexora.food.FoodOrder order;
+    private List<org.example.nexora.food.OrderItem> items;
 }

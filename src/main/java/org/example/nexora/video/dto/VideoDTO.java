@@ -1,7 +1,14 @@
 package org.example.nexora.video.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class VideoDTO {
     private Long id;
     private String title;
@@ -11,21 +18,4 @@ public class VideoDTO {
     private Long creatorId;
     private Integer views;
     private BigDecimal earnings;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public String getVideoUrl() { return videoUrl; }
-    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
-    public String getThumbnailUrl() { return thumbnailUrl; }
-    public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
-    public Long getCreatorId() { return creatorId; }
-    public void setCreatorId(Long creatorId) { this.creatorId = creatorId; }
-    public Integer getViews() { return views; }
-    public void setViews(Integer views) { this.views = views; }
-    public BigDecimal getEarnings() { return earnings; }
-    public void setEarnings(BigDecimal earnings) { this.earnings = earnings; }
 }

@@ -1,8 +1,15 @@
 package org.example.nexora.transaction;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransactionResponse {
 
     private String reference;
@@ -20,11 +27,4 @@ public class TransactionResponse {
         this.status = tx.getStatus();
         this.createdAt = tx.getCreatedAt();
     }
-
-    public String getReference() { return reference; }
-    public Long getSenderId() { return senderId; }
-    public Long getReceiverId() { return receiverId; }
-    public BigDecimal getAmount() { return amount; }
-    public String getStatus() { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
 }

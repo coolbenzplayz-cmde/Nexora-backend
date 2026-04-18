@@ -1,9 +1,16 @@
 package org.example.nexora.transaction;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity(name = "LedgerTransaction")
 @Table(name = "ledger_transactions")
 public class Transaction {
@@ -23,32 +30,4 @@ public class Transaction {
     private String status;
 
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    public Transaction() {}
-
-    public Transaction(String reference,
-                       Long senderId,
-                       Long receiverId,
-                       BigDecimal amount,
-                       String status) {
-        this.reference = reference;
-        this.senderId = senderId;
-        this.receiverId = receiverId;
-        this.amount = amount;
-        this.status = status;
-    }
-
-    public Long getId() { return id; }
-
-    public String getReference() { return reference; }
-
-    public Long getSenderId() { return senderId; }
-
-    public Long getReceiverId() { return receiverId; }
-
-    public BigDecimal getAmount() { return amount; }
-
-    public String getStatus() { return status; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
 }
