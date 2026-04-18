@@ -1,7 +1,13 @@
 package org.example.nexora.video;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Subscription {
 
@@ -11,15 +17,4 @@ public class Subscription {
 
     private Long followerId;   // who is following
     private Long creatorId;   // who is being followed
-
-    public Subscription() {}
-
-    public Subscription(Long followerId, Long creatorId) {
-        this.followerId = followerId;
-        this.creatorId = creatorId;
-    }
-
-    public Long getId() { return id; }
-    public Long getFollowerId() { return followerId; }
-    public Long getCreatorId() { return creatorId; }
 }

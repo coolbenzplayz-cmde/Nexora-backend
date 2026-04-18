@@ -1,10 +1,16 @@
 package org.example.nexora.social;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
 
-import java.time.LocalDateTime;
-
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity(name = "SocialComment")
 @Table(name = "comments")
 public class Comment extends BaseEntity {
@@ -25,46 +31,4 @@ public class Comment extends BaseEntity {
     private Comment parentComment;
 
     private int repliesCount = 0;
-
-    public Comment() {}
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
-
-    public org.example.nexora.user.User getUser() {
-        return user;
-    }
-
-    public void setUser(org.example.nexora.user.User user) {
-        this.user = user;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Comment getParentComment() {
-        return parentComment;
-    }
-
-    public void setParentComment(Comment parentComment) {
-        this.parentComment = parentComment;
-    }
-
-    public int getRepliesCount() {
-        return repliesCount;
-    }
-
-    public void setRepliesCount(int repliesCount) {
-        this.repliesCount = repliesCount;
-    }
 }

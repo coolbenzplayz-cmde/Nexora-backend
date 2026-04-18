@@ -1,9 +1,16 @@
 package org.example.nexora.wallet;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class WithdrawRequest {
 
@@ -18,20 +25,4 @@ public class WithdrawRequest {
     private String status; // APPROVED, REJECTED, PENDING_REVIEW
 
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    public WithdrawRequest() {}
-
-    public WithdrawRequest(Long userId, BigDecimal amount, String status) {
-        this.userId = userId;
-        this.amount = amount;
-        this.status = status;
-    }
-
-    public Long getId() { return id; }
-    public Long getUserId() { return userId; }
-    public BigDecimal getAmount() { return amount; }
-    public String getStatus() { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public void setStatus(String status) { this.status = status; }
 }

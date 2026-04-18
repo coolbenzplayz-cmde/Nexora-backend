@@ -1,8 +1,16 @@
 package org.example.nexora.social;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "likes")
 public class Like extends BaseEntity {
@@ -14,22 +22,4 @@ public class Like extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private org.example.nexora.user.User user;
-
-    public Like() {}
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
-
-    public org.example.nexora.user.User getUser() {
-        return user;
-    }
-
-    public void setUser(org.example.nexora.user.User user) {
-        this.user = user;
-    }
 }

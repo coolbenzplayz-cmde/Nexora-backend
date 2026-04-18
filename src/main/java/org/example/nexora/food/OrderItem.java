@@ -1,8 +1,15 @@
 package org.example.nexora.food;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
@@ -32,45 +39,4 @@ public class OrderItem {
 
     @Column(name = "special_instructions", length = 500)
     private String specialInstructions;
-
-    public OrderItem() {}
-
-    public OrderItem(Long menuItemId, String menuItemName, Integer quantity, BigDecimal unitPrice) {
-        this.menuItemId = menuItemId;
-        this.menuItemName = menuItemName;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-    }
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public FoodOrder getOrder() { return order; }
-    public void setOrder(FoodOrder order) { this.order = order; }
-
-    public Long getMenuItemId() { return menuItemId; }
-    public void setMenuItemId(Long menuItemId) { this.menuItemId = menuItemId; }
-
-    public String getMenuItemName() { return menuItemName; }
-    public void setMenuItemName(String menuItemName) { this.menuItemName = menuItemName; }
-
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { 
-        this.quantity = quantity;
-        this.subtotal = this.unitPrice.multiply(BigDecimal.valueOf(quantity));
-    }
-
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(BigDecimal unitPrice) { 
-        this.unitPrice = unitPrice;
-        this.subtotal = unitPrice.multiply(BigDecimal.valueOf(this.quantity));
-    }
-
-    public BigDecimal getSubtotal() { return subtotal; }
-    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
-
-    public String getSpecialInstructions() { return specialInstructions; }
-    public void setSpecialInstructions(String specialInstructions) { this.specialInstructions = specialInstructions; }
 }

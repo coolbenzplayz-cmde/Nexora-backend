@@ -1,8 +1,15 @@
 package org.example.nexora.video;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Video {
 
@@ -21,23 +28,4 @@ public class Video {
     private int likes = 0;
 
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    public Video() {}
-
-    public Video(Long userId, String title, String videoUrl) {
-        this.userId = userId;
-        this.title = title;
-        this.videoUrl = videoUrl;
-    }
-
-    public Long getId() { return id; }
-    public Long getUserId() { return userId; }
-    public String getTitle() { return title; }
-    public String getVideoUrl() { return videoUrl; }
-    public int getViews() { return views; }
-    public int getLikes() { return likes; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public void setViews(int views) { this.views = views; }
-    public void setLikes(int likes) { this.likes = likes; }
 }
