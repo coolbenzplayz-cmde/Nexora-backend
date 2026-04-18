@@ -9,7 +9,7 @@ RUN ./gradlew --no-daemon --version
 
 COPY src src
 
-RUN --mount=type=cache,id=gradle,target=/root/.gradle \
+RUN --mount=type=cache,id=cache-gradle,target=/root/.gradle \
     ./gradlew --no-daemon bootJar -x test
 
 RUN mkdir -p build/extracted \
