@@ -9,8 +9,7 @@ RUN ./gradlew --no-daemon --version
 
 COPY src src
 
-RUN --mount=type=cache,id=cache-gradle,target=/root/.gradle \
-    ./gradlew --no-daemon bootJar -x test
+RUN ./gradlew --no-daemon bootJar -x test
 
 RUN mkdir -p build/extracted \
  && (cd build/extracted && java -Djarmode=layertools -jar ../libs/nexora-1.0.0.jar extract)
