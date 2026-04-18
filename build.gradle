@@ -48,3 +48,8 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+compileJava {
+    options.compilerArgs << '-parameters'
+    options.annotationProcessorPath = configurations.annotationProcessor
+}
