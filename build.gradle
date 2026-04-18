@@ -48,8 +48,3 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-// Enable annotation processing
-compileJava {
-}
-    options.annotationProcessorPath = configurations.annotationProcessor
