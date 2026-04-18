@@ -1,21 +1,12 @@
 package org.example.nexora.messaging;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
 
 import java.time.LocalDateTime;
 
-/**
- * Direct message between two users (conversation keyed by deterministic pair id).
- */
-@Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "messages", indexes = {
         @Index(name = "idx_messages_conversation_id", columnList = "conversation_id"),
@@ -47,11 +38,27 @@ public class Message extends BaseEntity {
     private MessageType messageType = MessageType.TEXT;
 
     public enum MessageType {
-        TEXT,
-        IMAGE,
-        VIDEO,
-        AUDIO,
-        FILE,
-        LINK
+        TEXT, IMAGE, VIDEO, AUDIO, FILE, LINK
     }
+
+    public Long getConversationId() { return conversationId; }
+    public void setConversationId(Long conversationId) { this.conversationId = conversationId; }
+
+    public Long getSenderId() { return senderId; }
+    public void setSenderId(Long senderId) { this.senderId = senderId; }
+
+    public Long getReceiverId() { return receiverId; }
+    public void setReceiverId(Long receiverId) { this.receiverId = receiverId; }
+
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+
+    public Boolean getIsRead() { return isRead; }
+    public void setIsRead(Boolean isRead) { this.isRead = isRead; }
+
+    public LocalDateTime getReadAt() { return readAt; }
+    public void setReadAt(LocalDateTime readAt) { this.readAt = readAt; }
+
+    public MessageType getMessageType() { return messageType; }
+    public void setMessageType(MessageType messageType) { this.messageType = messageType; }
 }

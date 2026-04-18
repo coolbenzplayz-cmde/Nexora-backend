@@ -18,7 +18,6 @@ repositories {
 }
 
 dependencies {
-
     // 🌐 WEB
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
@@ -27,14 +26,11 @@ dependencies {
     // 🔐 SECURITY
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // 🗄 JPA (DATABASE)
+    // 🗄 JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     // 🐘 POSTGRES
     runtimeOnly 'org.postgresql:postgresql'
-
-    // Embedded H2 (dev/test datasource in DatabaseConfig)
-    runtimeOnly 'com.h2database:h2'
 
     // 🔴 REDIS
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -45,7 +41,7 @@ dependencies {
     // ✔ VALIDATION
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // 📄 OPENAPI / SWAGGER
+    // 📄 SWAGGER
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 
     // 🔐 JWT
@@ -53,7 +49,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // 📦 LOMBOK
+    // 📦 LOMBOK - THIS IS WHAT WAS MISSING
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
@@ -61,15 +57,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.security:spring-security-test'
-
-    // 🔁 DEV TOOLS
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-tasks.named('bootJar') {
-    archiveFileName = 'nexora.jar'
 }
