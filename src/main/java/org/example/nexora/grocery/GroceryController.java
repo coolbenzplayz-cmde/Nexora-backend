@@ -34,9 +34,12 @@ public class GroceryController {
 
     @GetMapping("/items/{id}")
     public ResponseEntity<GroceryItem> getItemById(@PathVariable Long id) {
-        return groceryService.getItemById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            GroceryItem item = groceryService.getItemById(id);
+            return ResponseEntity.ok(item);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/items/category/{category}")
