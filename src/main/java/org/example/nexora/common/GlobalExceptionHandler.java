@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = ex.getConstraintViolations().stream()
                 .collect(Collectors.toMap(
                         violation -> violation.getPropertyPath().toString(),
-                        jakarta.validation.ConstraintViolation::getMessage,
+                        violation -> violation.getMessage(),
                         (existing, replacement) -> existing
                 ));
 
