@@ -1,9 +1,6 @@
 package org.example.nexora.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -16,9 +13,6 @@ import java.util.Map;
  * Standard API response wrapper for all API endpoints.
  * Provides consistent response format across the application.
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> implements Serializable {
 
@@ -33,6 +27,80 @@ public class ApiResponse<T> implements Serializable {
 
     // HTTP Status code
     private int status;
+
+    // Default constructor
+    public ApiResponse() {
+        this.timestamp = LocalDateTime.now();
+        this.metadata = new HashMap<>();
+    }
+
+    // Full constructor
+    public ApiResponse(boolean success, String message, T data, LocalDateTime timestamp, String path, Map<String, Object> metadata, int status) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.timestamp = timestamp;
+        this.path = path;
+        this.metadata = metadata;
+        this.status = status;
+    }
+
+    // Getters and Setters
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public static <T> ApiResponse<T> success(T data) {
         ApiResponse<T> response = new ApiResponse<>();

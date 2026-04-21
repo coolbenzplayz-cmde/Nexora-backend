@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -22,10 +23,10 @@ import java.util.stream.Collectors;
 /**
  * Utility class providing common helper methods across the application.
  */
-@Slf4j
 @Component
 public class Utils {
 
+    private static final Logger log = LoggerFactory.getLogger(Utils.class);
     private static final ObjectMapper objectMapper;
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

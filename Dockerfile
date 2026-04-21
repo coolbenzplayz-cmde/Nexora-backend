@@ -27,4 +27,4 @@ COPY --from=build --chown=spring:spring /workspace/build/extracted/application/ 
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]

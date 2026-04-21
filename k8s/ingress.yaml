@@ -9,40 +9,36 @@ metadata:
   name: nexora-ingress
   namespace: nexora
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 spec:
   ingressClassName: nginx
   rules:
-  - host: nexora.example.com
-    http:
-      paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: nexora-backend
-            port:
-              number: 80
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: nexora-frontend
-            port:
-              number: 80
+    - host: nexora.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: nexora-backend
+                port:
+                  number: 80
+          - path: /actuator
+            pathType: Prefix
+            backend:
+              service:
+                name: nexora-backend
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexora-frontend
+                port:
+                  number: 80
   tls:
-  - hosts:
-    - nexora.example.com
-    secretName: nexora-tls-secret
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: nexora-secrets
-  namespace: nexora
-type: Opaque
-stringData:
-  database-url: "jdbc:postgresql://postgres:5432/nexora"
-  jwt-secret: "nexora-jwt-secret-key-change-in-production"
+    - hosts:
+        - nexora.example.com
+      secretName: nexora-tls-secret

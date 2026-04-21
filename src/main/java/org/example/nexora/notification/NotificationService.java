@@ -25,10 +25,10 @@ public class NotificationService {
 
     public Notification createNotification(Long userId, String title, String message, String type, String referenceType, Long referenceId) {
         Notification notification = new Notification();
-        notification.setUserId(userId);
+        notification.setUserId(java.util.UUID.fromString(userId.toString()));
         notification.setTitle(title);
         notification.setMessage(message);
-        notification.setType(type);
+        notification.setType(Notification.NotificationType.valueOf(type));
         notification.setReferenceType(referenceType);
         notification.setReferenceId(referenceId);
         notification.setIsRead(false);

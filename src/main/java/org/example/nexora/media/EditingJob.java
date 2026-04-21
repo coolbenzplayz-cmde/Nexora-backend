@@ -48,4 +48,53 @@ public class EditingJob extends BaseEntity {
         COMPLETED,
         FAILED
     }
+
+    // Explicit getters and setters to ensure they exist
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public EditingJobType getJobType() {
+        return jobType;
+    }
+
+    public void setJobType(EditingJobType jobType) {
+        this.jobType = jobType;
+    }
+
+    public EditingJobStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EditingJobStatus status) {
+        this.status = status;
+    }
+
+    public String getSourceUri() {
+        return sourceUri;
+    }
+
+    public void setSourceUri(String sourceUri) {
+        this.sourceUri = sourceUri;
+    }
+
+    public String getResultUri() {
+        return resultUri;
+    }
+
+    public void setResultUri(String resultUri) {
+        this.resultUri = resultUri;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 }

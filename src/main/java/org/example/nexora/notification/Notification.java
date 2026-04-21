@@ -45,6 +45,12 @@ public class Notification extends BaseEntity {
     @Column(name = "read_at")
     private java.time.LocalDateTime readAt;
 
+    @Column(name = "reference_type")
+    private String referenceType;
+
+    @Column(name = "reference_id")
+    private Long referenceId;
+
     public enum NotificationType {
         LIKE,
         COMMENT,
@@ -56,5 +62,82 @@ public class Notification extends BaseEntity {
         SUBSCRIPTION,
         PAYMENT,
         SYSTEM
+    }
+
+    // Explicit getters and setters to ensure they exist
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+
+    public Boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(Boolean isRead) {
+        this.isRead = isRead;
+    }
+
+    public java.time.LocalDateTime getReadAt() {
+        return readAt;
+    }
+
+    public void setReadAt(java.time.LocalDateTime readAt) {
+        this.readAt = readAt;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public Long getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(Long referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        // BaseEntity handles this automatically
     }
 }

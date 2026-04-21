@@ -1,7 +1,5 @@
 package org.example.nexora.common;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
 import java.io.Serializable;
@@ -11,8 +9,6 @@ import java.util.List;
  * Generic pagination response wrapper for list endpoints.
  * Provides pagination metadata along with the data.
  */
-@Data
-@NoArgsConstructor
 public class PaginationResponse<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -26,6 +22,10 @@ public class PaginationResponse<T> implements Serializable {
     private boolean last;
     private boolean hasNext;
     private boolean hasPrevious;
+
+    // Default constructor
+    public PaginationResponse() {
+    }
 
     /**
      * Build from a Spring Data {@link Page} (e.g. repository {@code findAll(Pageable)}).
@@ -55,6 +55,79 @@ public class PaginationResponse<T> implements Serializable {
         this.last = this.totalPages == 0 || this.currentPage >= this.totalPages;
         this.hasNext = this.totalPages > 0 && this.currentPage < this.totalPages;
         this.hasPrevious = zeroBasedPage > 0;
+    }
+
+    // Getters and Setters
+    public List<T> getData() {
+        return data;
+    }
+
+    public void setData(List<T> data) {
+        this.data = data;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public long getTotalItems() {
+        return totalItems;
+    }
+
+    public void setTotalItems(long totalItems) {
+        this.totalItems = totalItems;
+    }
+
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public boolean isFirst() {
+        return first;
+    }
+
+    public void setFirst(boolean first) {
+        this.first = first;
+    }
+
+    public boolean isLast() {
+        return last;
+    }
+
+    public void setLast(boolean last) {
+        this.last = last;
+    }
+
+    public boolean isHasNext() {
+        return hasNext;
+    }
+
+    public void setHasNext(boolean hasNext) {
+        this.hasNext = hasNext;
+    }
+
+    public boolean isHasPrevious() {
+        return hasPrevious;
+    }
+
+    public void setHasPrevious(boolean hasPrevious) {
+        this.hasPrevious = hasPrevious;
     }
 
     public static <T> PaginationResponse<T> of(List<T> data, int currentPage, int pageSize, long totalItems) {

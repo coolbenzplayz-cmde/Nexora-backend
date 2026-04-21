@@ -3,6 +3,7 @@ package org.example.nexora.grocery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,4 +15,7 @@ public interface GroceryRepository extends JpaRepository<GroceryItem, Long> {
     List<GroceryItem> findByStoreId(Long storeId);
     Page<GroceryItem> findByNameContainingIgnoreCaseOrderByCreatedAtDesc(String name, Pageable pageable);
     List<GroceryItem> findByIsAvailableTrue();
+    
+    @Query("SELECT DISTINCT g.category FROM GroceryItem g WHERE g.isAvailable = true")
+    List<String> findAllCategories();
 }

@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -22,6 +24,8 @@ import java.util.Map;
 @RequestMapping("/api/webhooks")
 public class GitHubWebhookController {
 
+    private static final Logger log = LoggerFactory.getLogger(GitHubWebhookController.class);
+    
     private final GitHubWebhookService webhookService;
 
     public GitHubWebhookController(GitHubWebhookService webhookService) {
@@ -41,28 +45,21 @@ public class GitHubWebhookController {
         log.info("Received GitHub webhook: Event type = {}", eventType);
         
         try {
-            // Process the webhook event
-            webhookService.processWebhookEvent(eventType, payload);
+            // Process webhook event
+            webhookService.processWebhookEvent(eventType, signature, payload);
             
             return ResponseEntity.ok(Map.of(
-                "status", "received",
-                "event", eventType != null ? eventType : "unknown"
+                "status", "success",
+                "message", "Webhook processed successfully"
             ));
+            
         } catch (Exception e) {
             log.error("Error processing GitHub webhook: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("status", "error", "message", e.getMessage()));
+                .body(Map.of(
+                    "status", "error", 
+                    "message", "Failed to process webhook"
+                ));
         }
-    }
-
-    /**
-     * Endpoint to test webhook connection
-     */
-    @GetMapping("/github/test")
-    public ResponseEntity<Map<String, String>> testWebhook() {
-        return ResponseEntity.ok(Map.of(
-            "status", "ok",
-            "message", "GitHub webhook endpoint is active"
-        ));
     }
 }

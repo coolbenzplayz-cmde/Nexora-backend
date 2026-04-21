@@ -15,7 +15,7 @@ public class UserService {
     }
 
     public User getUserById(String id) {
-        return userRepository.findById(id)
+        return userRepository.findById(Long.parseLong(id))
             .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
     }
 
@@ -24,21 +24,8 @@ public class UserService {
             .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
     }
 
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
-    }
-
-    public List<User> searchUsers(String query) {
-        return userRepository.searchUsers(query);
-    }
-
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-
-    public List<User> getAllActiveUsers() {
-        return userRepository.findAllActive();
     }
 
     public User updateUser(String id, User updatedUser) {
@@ -63,23 +50,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deactivateUser(String id) {
-        User user = getUserById(id);
-        user.setActive(false);
-        userRepository.save(user);
-    }
-
-    public void activateUser(String id) {
-        User user = getUserById(id);
-        user.setActive(true);
-        userRepository.save(user);
-    }
-
     public void followUser(String currentUserId, String targetUserId) {
-        if (currentUserId.equals(targetUserId)) {
-            throw new BusinessException("Cannot follow yourself", "SELF_FOLLOW");
-        }
-        
         User currentUser = getUserById(currentUserId);
         User targetUser = getUserById(targetUserId);
         
@@ -105,15 +76,37 @@ public class UserService {
         userRepository.save(targetUser);
     }
 
+    public void deleteUser(String id) {
+        User user = getUserById(id);
+        userRepository.delete(user);
+    }
+
+    // Additional methods needed by UserController
+    public List<User> searchUsers(String query) {
+        return userRepository.findByUsernameContainingIgnoreCase(query);
+    }
+
+    public void deactivateUser(String id) {
+        User user = getUserById(id);
+        user.setStatus(User.UserStatus.INACTIVE);
+        userRepository.save(user);
+    }
+
+    public void activateUser(String id) {
+        User user = getUserById(id);
+        user.setStatus(User.UserStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
     public long getTotalUsers() {
         return userRepository.count();
     }
 
     public long getActiveUsers() {
-        return userRepository.countByActive(true);
+        return userRepository.countByStatus(User.UserStatus.ACTIVE);
     }
 
     public long getInactiveUsers() {
-        return userRepository.countByActive(false);
+        return userRepository.countByStatus(User.UserStatus.INACTIVE);
     }
 }

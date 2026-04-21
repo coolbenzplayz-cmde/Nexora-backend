@@ -82,4 +82,9 @@ public class BusinessException extends RuntimeException {
     public String getCode() {
         return code;
     }
+
+    // Explicit getter for httpStatus to ensure it exists
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
+    }
 }

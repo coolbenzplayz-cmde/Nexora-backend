@@ -9,193 +9,152 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Service for managing social posts.
- * Handles post creation, retrieval, update, and deletion.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
+    private static final Logger log = LoggerFactory.getLogger(PostService.class);
+    
     private final PostRepository postRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    /**
-     * Creates a new post.
-     */
     @Transactional
-    @CacheEvict(value = "posts", allEntries = true)
-    public Post createPost(Post post) {
-        log.info("Creating post for user: {}", post.getUserId());
-
+    public ApiResponse<Post> createPost(UUID userId, String content) {
+        log.info("Creating post for user: {}", userId);
+        
+        Post post = new Post();
+        post.setUserId(userId);
+        post.setContent(content);
         post.setLikesCount(0L);
         post.setCommentsCount(0L);
         post.setSharesCount(0L);
         post.setViewsCount(0L);
         post.setIsEdited(false);
-
+        
         Post savedPost = postRepository.save(post);
+        
+        // Send notification
+        kafkaTemplate.send("post-events", Map.of(
+            "type", "POST_CREATED",
+            "postId", savedPost.getId(),
+            "userId", userId
+        ));
+        
         log.info("Post created with ID: {}", savedPost.getId());
-
-        // Send event to Kafka
-        sendPostCreatedEvent(savedPost);
-
-        return savedPost;
+        return ApiResponse.success(savedPost);
     }
 
-    /**
-     * Gets a post by ID.
-     */
     @Transactional(readOnly = true)
-    public Post getPostById(UUID postId) {
-        log.info("Fetching post: {}", postId);
-        return postRepository.findById(postId)
-                .orElseThrow(() -> BusinessException.notFound("Post"));
-    }
-
-    /**
-     * Gets posts for a user's feed.
-     */
-    @Transactional(readOnly = true)
-    @Cacheable(value = "posts", key = "#userId + '-' + #page + '-' + #size")
-    public PaginationResponse<Post> getFeed(UUID userId, int page, int size) {
+    @Cacheable(value = "userFeed", key = "#userId")
+    public ApiResponse<PaginationResponse<Post>> getUserFeed(UUID userId, int page, int size) {
         log.info("Fetching feed for user: {}", userId);
-
-        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Post> posts = postRepository.findByUserId(userId, pageRequest);
-
-        return PaginationResponse.of(
-                posts.getContent(),
-                page,
-                size,
-                posts.getTotalElements()
-        );
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        
+        org.example.nexora.common.PaginationResponse<Post> response = new org.example.nexora.common.PaginationResponse<>(posts);
+        
+        return ApiResponse.success(response);
     }
 
-    /**
-     * Gets posts by user.
-     */
     @Transactional(readOnly = true)
-    public PaginationResponse<Post> getPostsByUser(UUID userId, int page, int size) {
+    @Cacheable(value = "postsByUser", key = "#userId")
+    public ApiResponse<PaginationResponse<Post>> getPostsByUser(UUID userId, int page, int size) {
         log.info("Fetching posts by user: {}", userId);
-
-        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Post> posts = postRepository.findByUserIdAndIsActiveTrue(userId, pageRequest);
-
-        return PaginationResponse.of(
-                posts.getContent(),
-                page,
-                size,
-                posts.getTotalElements()
-        );
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        
+        org.example.nexora.common.PaginationResponse<Post> response = new org.example.nexora.common.PaginationResponse<>(posts);
+        
+        return ApiResponse.success(response);
     }
 
-    /**
-     * Updates a post.
-     */
     @Transactional
-    @CacheEvict(value = "posts", allEntries = true)
-    public Post updatePost(UUID postId, Post updatedPost) {
+    public ApiResponse<Post> updatePost(UUID postId, UUID userId, String content) {
         log.info("Updating post: {}", postId);
-
-        Post existingPost = getPostById(postId);
-        existingPost.setContent(updatedPost.getContent());
-        existingPost.setMediaUrls(updatedPost.getMediaUrls());
-        existingPost.setMediaTypes(updatedPost.getMediaTypes());
-        existingPost.setVisibility(updatedPost.getVisibility());
-        existingPost.setLocation(updatedPost.getLocation());
-        existingPost.setIsEdited(true);
-
-        Post savedPost = postRepository.save(existingPost);
-        log.info("Post updated: {}", postId);
-
-        return savedPost;
+        
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found"));
+        
+        if (!post.getUserId().equals(userId)) {
+            throw new BusinessException("Unauthorized", "FORBIDDEN");
+        }
+        
+        post.setContent(content);
+        post.setIsEdited(true);
+        
+        Post updatedPost = postRepository.save(post);
+        
+        // Send notification
+        kafkaTemplate.send("post-events", Map.of(
+            "type", "POST_UPDATED",
+            "postId", updatedPost.getId(),
+            "userId", userId
+        ));
+        
+        return ApiResponse.success(updatedPost);
     }
 
-    /**
-     * Deletes a post (soft delete).
-     */
     @Transactional
-    @CacheEvict(value = "posts", allEntries = true)
-    public void deletePost(UUID postId) {
-        log.info("Deleting post: {}", postId);
-
-        Post post = getPostById(postId);
-        post.softDelete();
-        postRepository.save(post);
-
-        log.info("Post deleted: {}", postId);
+    @CacheEvict(value = {"userFeed", "postsByUser"}, key = "#userId")
+    public ApiResponse<String> deletePost(UUID postId, UUID userId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found"));
+        
+        if (!post.getUserId().equals(userId)) {
+            throw new BusinessException("Unauthorized", "FORBIDDEN");
+        }
+        
+        postRepository.delete(post);
+        
+        // Send notification
+        kafkaTemplate.send("post-events", Map.of(
+            "type", "POST_DELETED",
+            "postId", postId,
+            "userId", userId
+        ));
+        
+        return ApiResponse.success("Post deleted successfully");
     }
 
-    /**
-     * Increments like count for a post.
-     */
-    @Transactional
-    @CacheEvict(value = "posts", allEntries = true)
+    // Additional methods expected by controller
+    public Post getPostById(UUID postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("Post not found"));
+    }
+
+    public PaginationResponse<Post> getFeed(UUID userId, int page, int size) {
+        return getUserFeed(userId, page, size).getData();
+    }
+
     public void incrementLikes(UUID postId) {
-        log.info("Incrementing likes for post: {}", postId);
         postRepository.incrementLikesCount(postId);
     }
 
-    /**
-     * Decrements like count for a post.
-     */
-    @Transactional
-    @CacheEvict(value = "posts", allEntries = true)
     public void decrementLikes(UUID postId) {
-        log.info("Decrementing likes for post: {}", postId);
         postRepository.decrementLikesCount(postId);
     }
 
-    /**
-     * Increments comment count for a post.
-     */
-    @Transactional
-    @CacheEvict(value = "posts", allEntries = true)
-    public void incrementComments(UUID postId) {
-        log.info("Incrementing comments for post: {}", postId);
-        postRepository.incrementCommentsCount(postId);
-    }
-
-    /**
-     * Searches posts by content.
-     */
-    @Transactional(readOnly = true)
     public List<Post> searchPosts(String query, int limit) {
-        log.info("Searching posts with query: {}", query);
-        return postRepository.searchByContent(query, PageRequest.of(0, limit));
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return postRepository.searchByContent(query, pageable);
     }
 
-    /**
-     * Gets trending posts.
-     */
-    @Transactional(readOnly = true)
     public List<Post> getTrendingPosts(int limit) {
-        log.info("Fetching trending posts");
-        return postRepository.findTrendingPosts(PageRequest.of(0, limit));
-    }
-
-    /**
-     * Sends post created event to Kafka.
-     */
-    private void sendPostCreatedEvent(Post post) {
-        try {
-            String message = String.format("{\"event\":\"POST_CREATED\",\"postId\":\"%s\",\"userId\":\"%s\"}",
-                    post.getId(), post.getUserId());
-            kafkaTemplate.send("nexora.post.events", message);
-            log.debug("Post created event sent: {}", post.getId());
-        } catch (Exception e) {
-            log.error("Failed to send post created event", e);
-        }
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return postRepository.findTrendingPosts(pageable);
     }
 }

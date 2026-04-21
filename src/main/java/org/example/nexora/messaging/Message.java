@@ -61,4 +61,9 @@ public class Message extends BaseEntity {
 
     public MessageType getMessageType() { return messageType; }
     public void setMessageType(MessageType messageType) { this.messageType = messageType; }
+
+    // Additional method needed by MessageService
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        // BaseEntity handles this automatically
+    }
 }

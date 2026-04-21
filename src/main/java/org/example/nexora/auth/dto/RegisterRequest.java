@@ -32,4 +32,38 @@ public class RegisterRequest {
 
     private String phone;
     private boolean termsAccepted = false;
+
+    // Additional getters for compatibility with AuthService
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phone;
+    }
+
+    // Explicit getters for email and password
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return email; // Using email as username for now
+    }
+
+    public void setUsername(String username) {
+        this.email = username; // Using email as username for now
+    }
 }

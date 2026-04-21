@@ -11,6 +11,6 @@ public interface GameSessionRepository extends JpaRepository<GameSession, Long> 
 
     List<GameSession> findByGameCodeAndStatusOrderByScoreDesc(
             String gameCode,
-            GameSession.GameSessionStatus status,
+            GameSessionStatus status,
             Pageable pageable);
 }

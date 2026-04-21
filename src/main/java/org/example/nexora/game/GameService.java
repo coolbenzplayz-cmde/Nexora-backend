@@ -45,7 +45,7 @@ public class GameService {
         session.setUserId(user.getId());
         session.setGameCode(gameCode.trim());
         session.setScore(0);
-        session.setStatus(GameSession.GameSessionStatus.ACTIVE);
+        session.setStatus(GameSessionStatus.ACTIVE);
         return gameSessionRepository.save(session);
     }
 
@@ -56,11 +56,11 @@ public class GameService {
         if (!session.getUserId().equals(user.getId())) {
             throw new BusinessException("Forbidden", "FORBIDDEN");
         }
-        if (session.getStatus() != GameSession.GameSessionStatus.ACTIVE) {
+        if (session.getStatus() != GameSessionStatus.ACTIVE) {
             throw new BusinessException("Session already completed", "SESSION_CLOSED");
         }
         session.setScore(Math.max(0, score));
-        session.setStatus(GameSession.GameSessionStatus.COMPLETED);
+        session.setStatus(GameSessionStatus.COMPLETED);
         GameSession saved = gameSessionRepository.save(session);
 
         GameProfile profile = getOrCreateProfile(user);
@@ -79,7 +79,7 @@ public class GameService {
         }
         return gameSessionRepository.findByGameCodeAndStatusOrderByScoreDesc(
                 gameCode.trim(),
-                GameSession.GameSessionStatus.COMPLETED,
+                GameSessionStatus.COMPLETED,
                 PageRequest.of(0, LEADERBOARD_SIZE));
     }
 }

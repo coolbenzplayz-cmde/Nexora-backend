@@ -2,7 +2,7 @@ package org.example.nexora.admin;
 
 import org.example.nexora.user.User;
 import org.example.nexora.user.UserRepository;
-import org.example.nexora.user.Role;
+import org.example.nexora.user.UserRole;
 import org.example.nexora.video.Video;
 import org.example.nexora.video.VideoRepository;
 import org.example.nexora.wallet.WithdrawRepository;

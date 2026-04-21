@@ -26,22 +26,7 @@ public class GroceryService {
         this.userRepository = userRepository;
     }
 
-    public GroceryItem createItem(Long userId, String name, String description, BigDecimal price, 
-                                   String category, String imageUrl, Long storeId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("User not found"));
-
-        GroceryItem item = new GroceryItem();
-        item.setName(name);
-        item.setDescription(description);
-        item.setPrice(price);
-        item.setCategory(category);
-        item.setImageUrl(imageUrl);
-        item.setStoreId(storeId);
-        item.setIsAvailable(true);
-        item.setCreatedAt(LocalDateTime.now());
-        item.setUpdatedAt(LocalDateTime.now());
-
+    public GroceryItem createItem(GroceryItem item) {
         return groceryRepository.save(item);
     }
 
@@ -66,23 +51,34 @@ public class GroceryService {
                 .orElseThrow(() -> new BusinessException("Grocery item not found"));
     }
 
-    public GroceryItem updateItem(Long itemId, Long userId, String name, String description, 
-                                   BigDecimal price, String category, String imageUrl, Boolean isAvailable) {
-        GroceryItem item = getItemById(itemId);
-        
-        if (name != null) item.setName(name);
-        if (description != null) item.setDescription(description);
-        if (price != null) item.setPrice(price);
-        if (category != null) item.setCategory(category);
-        if (imageUrl != null) item.setImageUrl(imageUrl);
-        if (isAvailable != null) item.setIsAvailable(isAvailable);
-        item.setUpdatedAt(LocalDateTime.now());
-
-        return groceryRepository.save(item);
+    public List<String> getAllCategories() {
+        return groceryRepository.findAllCategories();
     }
 
-    public void deleteItem(Long itemId, Long userId) {
-        GroceryItem item = getItemById(itemId);
+    public BigDecimal calculateCartTotal(List<CartItem> cartItems) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (CartItem item : cartItems) {
+            total = total.add(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+        return total;
+    }
+
+    public GroceryItem updateItem(Long id, GroceryItem item) {
+        GroceryItem existingItem = getItemById(id);
+        
+        if (item.getName() != null) existingItem.setName(item.getName());
+        if (item.getDescription() != null) existingItem.setDescription(item.getDescription());
+        if (item.getPrice() != null) existingItem.setPrice(item.getPrice());
+        if (item.getCategory() != null) existingItem.setCategory(item.getCategory());
+        if (item.getImageUrl() != null) existingItem.setImageUrl(item.getImageUrl());
+        if (item.getIsAvailable() != null) existingItem.setIsAvailable(item.getIsAvailable());
+        existingItem.setUpdatedAt(LocalDateTime.now());
+        
+        return groceryRepository.save(existingItem);
+    }
+
+    public void deleteItem(Long id, Long userId) {
+        GroceryItem item = getItemById(id);
         groceryRepository.delete(item);
     }
 
@@ -100,34 +96,27 @@ public class GroceryService {
         cartItem.setPrice(item.getPrice());
         cartItem.setItemName(item.getName());
         cartItem.setItemImage(item.getImageUrl());
-
+        
         return cartRepository.save(cartItem);
     }
 
-    public List<CartItem> getCart(Long userId) {
+    public List<CartItem> getCartItems(Long userId) {
         return cartRepository.findByUserId(userId);
     }
 
-    public BigDecimal getCartTotal(Long userId) {
-        List<CartItem> items = cartRepository.findByUserId(userId);
-        BigDecimal total = BigDecimal.ZERO;
-        for (CartItem item : items) {
-            total = total.add(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+    public void removeFromCart(Long userId, Long cartItemId) {
+        CartItem cartItem = cartRepository.findById(cartItemId)
+                .orElseThrow(() -> new BusinessException("Cart item not found"));
+        
+        if (!cartItem.getUserId().equals(userId)) {
+            throw new BusinessException("Forbidden", "FORBIDDEN");
         }
-        return total;
+        
+        cartRepository.delete(cartItem);
     }
 
-    @Transactional
-    public void removeFromCart(Long userId, Long itemId) {
-        cartRepository.deleteByUserIdAndItemId(userId, itemId);
-    }
-
-    @Transactional
     public void clearCart(Long userId) {
-        cartRepository.deleteByUserId(userId);
-    }
-
-    public List<GroceryItem> getAvailableItems() {
-        return groceryRepository.findByIsAvailableTrue();
+        List<CartItem> items = getCartItems(userId);
+        cartRepository.deleteAll(items);
     }
 }

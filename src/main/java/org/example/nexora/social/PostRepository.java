@@ -24,6 +24,11 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     Page<Post> findByUserId(UUID userId, Pageable pageable);
 
     /**
+     * Find posts by user ID ordered by creation date.
+     */
+    Page<Post> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+
+    /**
      * Find active posts by user ID.
      */
     Page<Post> findByUserIdAndIsActiveTrue(UUID userId, Pageable pageable);

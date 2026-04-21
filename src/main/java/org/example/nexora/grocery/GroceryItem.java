@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.example.nexora.common.BaseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "grocery_items")
@@ -40,7 +41,13 @@ public class GroceryItem extends BaseEntity {
     private Double rating;
 
     @Column
-    private Integer reviewCount;
+    private Integer reviewCount = 0;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public GroceryItem() {
     }
@@ -139,5 +146,38 @@ public class GroceryItem extends BaseEntity {
 
     public void setReviewCount(Integer reviewCount) {
         this.reviewCount = reviewCount;
+    }
+
+    // Additional methods needed by GroceryService
+    public Long getStoreId() {
+        return getId(); // Using entity ID as store ID for now
+    }
+
+    public void setStoreId(Long storeId) {
+        // This would typically be a separate field, but using ID for now
+    }
+
+    public Boolean getIsAvailable() {
+        return getInStock();
+    }
+
+    public void setIsAvailable(Boolean isAvailable) {
+        setInStock(isAvailable);
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

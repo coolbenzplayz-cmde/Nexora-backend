@@ -6,17 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
-import org.hibernate.annotations.Array;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
- * Post entity representing user posts in the social feed.
+ * Social media post entity
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -25,34 +19,24 @@ import java.util.UUID;
 @Entity
 @Table(name = "posts", indexes = {
         @Index(name = "idx_posts_user_id", columnList = "userId"),
-        @Index(name = "idx_posts_created_at", columnList = "createdAt DESC"),
-        @Index(name = "idx_posts_visibility", columnList = "visibility")
+        @Index(name = "idx_posts_created_at", columnList = "createdAt"),
+        @Index(name = "idx_posts_likes_count", columnList = "likesCount"),
+        @Index(name = "idx_posts_comments_count", columnList = "commentsCount")
 })
 public class Post extends BaseEntity {
 
-    @Column(name = "user_id", nullable = false, updatable = false)
+    @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private String content;
 
-    @Array(columnDefinition = "TEXT")
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "media_urls", columnDefinition = "TEXT[]")
-    private List<String> mediaUrls = new ArrayList<>();
-
-    @Array(columnDefinition = "VARCHAR(20)")
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "media_types", columnDefinition = "VARCHAR(20)[]")
-    private List<String> mediaTypes = new ArrayList<>();
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "post_type")
-    private PostType postType = PostType.POST;
+    @Column(nullable = false)
+    private PostType type = PostType.POST;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "visibility")
-    private Visibility visibility = Visibility.PUBLIC;
+    @Column(name = "media_url")
+    private String mediaUrl;
 
     @Column(name = "likes_count")
     private Long likesCount = 0L;
@@ -88,33 +72,60 @@ public class Post extends BaseEntity {
         LIVE
     }
 
-    /**
-     * Visibility enum
-     */
-    public enum Visibility {
-        PUBLIC,
-        FOLLOWERS,
-        PRIVATE
+    // Explicit getters and setters to ensure they exist
+    public UUID getUserId() {
+        return userId;
     }
 
-    /**
-     * Pre-persist hook
-     */
-    @PrePersist
-    protected void onCreate() {
-        super.onCreate();
-        if (likesCount == null) likesCount = 0L;
-        if (commentsCount == null) commentsCount = 0L;
-        if (sharesCount == null) sharesCount = 0L;
-        if (viewsCount == null) viewsCount = 0L;
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
-    /**
-     * Get total engagement count
-     */
-    public Long getTotalEngagement() {
-        return (likesCount != null ? likesCount : 0L) +
-                (commentsCount != null ? commentsCount : 0L) +
-                (sharesCount != null ? sharesCount : 0L);
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Long getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(Long likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public Long getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(Long commentsCount) {
+        this.commentsCount = commentsCount;
+    }
+
+    public Long getSharesCount() {
+        return sharesCount;
+    }
+
+    public void setSharesCount(Long sharesCount) {
+        this.sharesCount = sharesCount;
+    }
+
+    public Long getViewsCount() {
+        return viewsCount;
+    }
+
+    public void setViewsCount(Long viewsCount) {
+        this.viewsCount = viewsCount;
+    }
+
+    public Boolean getIsEdited() {
+        return isEdited;
+    }
+
+    public void setIsEdited(Boolean isEdited) {
+        this.isEdited = isEdited;
     }
 }

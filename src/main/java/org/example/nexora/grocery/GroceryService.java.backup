@@ -1,0 +1,118 @@
+package org.example.nexora.grocery;
+
+import org.example.nexora.common.BusinessException;
+import org.example.nexora.user.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class GroceryService {
+
+    private final GroceryRepository groceryRepository;
+    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
+
+    public GroceryService(GroceryRepository groceryRepository, 
+                          CartRepository cartRepository,
+                          UserRepository userRepository) {
+        this.groceryRepository = groceryRepository;
+        this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
+    }
+
+    public GroceryItem createItem(GroceryItem item) {
+        return groceryRepository.save(item);
+    }
+
+    public Page<GroceryItem> getAllItems(Pageable pageable) {
+        return groceryRepository.findAll(pageable);
+    }
+
+    public Page<GroceryItem> getItemsByStore(Long storeId, Pageable pageable) {
+        return groceryRepository.findByStoreIdOrderByCreatedAtDesc(storeId, pageable);
+    }
+
+    public Page<GroceryItem> getItemsByCategory(String category, Pageable pageable) {
+        return groceryRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
+    }
+
+    public Page<GroceryItem> searchItems(String query, Pageable pageable) {
+        return groceryRepository.findByNameContainingIgnoreCaseOrderByCreatedAtDesc(query, pageable);
+    }
+
+    public GroceryItem getItemById(Long itemId) {
+        return groceryRepository.findById(itemId)
+                .orElseThrow(() -> new BusinessException("Grocery item not found"));
+    }
+
+    public GroceryItem updateItem(Long itemId, Long userId, String name, String description, 
+                                   BigDecimal price, String category, String imageUrl, Boolean isAvailable) {
+        GroceryItem item = getItemById(itemId);
+        
+        if (name != null) item.setName(name);
+        if (description != null) item.setDescription(description);
+        if (price != null) item.setPrice(price);
+        if (category != null) item.setCategory(category);
+        if (imageUrl != null) item.setImageUrl(imageUrl);
+        if (isAvailable != null) item.setIsAvailable(isAvailable);
+        item.setUpdatedAt(LocalDateTime.now());
+
+        return groceryRepository.save(item);
+    }
+
+    public void deleteItem(Long itemId, Long userId) {
+        GroceryItem item = getItemById(itemId);
+        groceryRepository.delete(item);
+    }
+
+    // Cart operations
+    public CartItem addToCart(Long userId, Long itemId, int quantity) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("User not found"));
+        
+        GroceryItem item = getItemById(itemId);
+        
+        CartItem cartItem = new CartItem();
+        cartItem.setUserId(userId);
+        cartItem.setItemId(itemId);
+        cartItem.setQuantity(quantity);
+        cartItem.setPrice(item.getPrice());
+        cartItem.setItemName(item.getName());
+        cartItem.setItemImage(item.getImageUrl());
+
+        return cartRepository.save(cartItem);
+    }
+
+    public List<CartItem> getCart(Long userId) {
+        return cartRepository.findByUserId(userId);
+    }
+
+    public BigDecimal getCartTotal(Long userId) {
+        List<CartItem> items = cartRepository.findByUserId(userId);
+        BigDecimal total = BigDecimal.ZERO;
+        for (CartItem item : items) {
+            total = total.add(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+        return total;
+    }
+
+    @Transactional
+    public void removeFromCart(Long userId, Long itemId) {
+        cartRepository.deleteByUserIdAndItemId(userId, itemId);
+    }
+
+    @Transactional
+    public void clearCart(Long userId) {
+        cartRepository.deleteByUserId(userId);
+    }
+
+    public List<GroceryItem> getAvailableItems() {
+        return groceryRepository.findByIsAvailableTrue();
+    }
+}

@@ -51,6 +51,15 @@ public abstract class BaseEntity implements Serializable {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
+    // Explicit getters and setters for critical fields
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     /**
      * Pre-persist hook to set default values
      */
