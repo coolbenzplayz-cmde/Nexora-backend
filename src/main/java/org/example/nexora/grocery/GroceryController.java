@@ -49,14 +49,14 @@ public class GroceryController {
         return ResponseEntity.ok(groceryService.getItemsByCategory(category, pageable));
     }
 
-    @GetMapping("/items/store/{storeName}")
+    @GetMapping("/items/store/{storeId}")
     public ResponseEntity<Page<GroceryItem>> getItemsByStore(
-            @PathVariable String storeName,
+            @PathVariable Long storeId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(groceryService.getItemsByStore(storeName, pageable));
+        return ResponseEntity.ok(groceryService.getItemsByStore(storeId, pageable));
     }
 
     @GetMapping("/search")
@@ -88,7 +88,7 @@ public class GroceryController {
 
     @DeleteMapping("/items/{id}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
-        groceryService.deleteItem(id);
+        groceryService.deleteItem(id, 1L); // TODO: Get actual userId from authentication
         return ResponseEntity.ok().build();
     }
 

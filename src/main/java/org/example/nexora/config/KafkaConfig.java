@@ -14,6 +14,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.config.ContainerProperties;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -127,7 +128,7 @@ public class KafkaConfig {
         
         ReplyingKafkaTemplate<String, Object, Object> template = 
             new ReplyingKafkaTemplate<>(producerFactory, replyContainer);
-        template.setDefaultReplyTimeout(30000);
+        template.setDefaultReplyTimeout(java.time.Duration.ofSeconds(30));
         
         return template;
     }
@@ -136,8 +137,9 @@ public class KafkaConfig {
     public ConcurrentMessageListenerContainer<String, Object> replyContainer(
             ConsumerFactory<String, Object> consumerFactory) {
         
+        ContainerProperties containerProperties = new ContainerProperties("replies-group");
         ConcurrentMessageListenerContainer<String, Object> container = 
-            new ConcurrentMessageListenerContainer<>(consumerFactory, "replies-group");
+            new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
         container.setAutoStartup(false);
         
         return container;

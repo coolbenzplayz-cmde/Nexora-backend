@@ -1,5 +1,7 @@
 package org.example.nexora.food.dto;
 
+import org.example.nexora.food.FoodOrder;
+import org.example.nexora.food.OrderItem;
 import java.util.List;
 
 public class CreateOrderRequest {

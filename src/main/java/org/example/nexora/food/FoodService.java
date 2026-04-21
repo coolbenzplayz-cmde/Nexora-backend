@@ -152,7 +152,4 @@ public class FoodService {
     public long getUserOrderCount(Long userId) {
         return foodOrderRepository.findByUserId(userId, Pageable.unpaged()).getTotalElements();
     }
-
-    public FoodOrder createOrder(FoodOrder order, List<OrderItem> items) {
-    }
 }

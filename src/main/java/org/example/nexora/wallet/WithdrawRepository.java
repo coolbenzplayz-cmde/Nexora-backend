@@ -6,4 +6,5 @@ import java.util.List;
 public interface WithdrawRepository extends JpaRepository<WithdrawRequest, Long> {
 
     List<WithdrawRequest> findByUserId(Long userId);
+    List<WithdrawRequest> findByUser_Id(Long userId);
 }
