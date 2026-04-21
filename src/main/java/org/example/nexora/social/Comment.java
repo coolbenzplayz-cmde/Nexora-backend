@@ -1,70 +1,139 @@
 package org.example.nexora.social;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
+import org.example.nexora.video.Video;
 
 import java.time.LocalDateTime;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity(name = "SocialComment")
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_video_id", columnList = "videoId"),
+        @Index(name = "idx_comments_post_id", columnList = "postId"),
+        @Index(name = "idx_comments_user_id", columnList = "userId"),
+        @Index(name = "idx_comments_parent_id", columnList = "parentCommentId"),
+        @Index(name = "idx_comments_created_at", columnList = "createdAt"),
+        @Index(name = "idx_comments_content_type", columnList = "contentType")
+})
 public class Comment extends BaseEntity {
 
-    @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @Column(name = "video_id")
+    private Long videoId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private org.example.nexora.user.User user;
+    @Column(name = "post_id")
+    private Long postId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parentComment;
+    @Column(name = "parent_comment_id")
+    private Long parentCommentId;
 
-    private int repliesCount = 0;
+    @Column(name = "replies_count", nullable = false)
+    private Integer repliesCount = 0;
 
-    public Comment() {}
+    @Column(name = "likes_count", nullable = false)
+    private Integer likesCount = 0;
 
-    public Post getPost() {
-        return post;
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+    @Column(name = "is_edited", nullable = false)
+    private Boolean isEdited = false;
+
+    @Column(name = "content_moderation_flagged")
+    private Boolean contentModerationFlagged = false;
+
+    @Column(name = "content_moderation_reason")
+    private String contentModerationReason;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public enum ContentType {
+        VIDEO,
+        POST
     }
 
-    public void setPost(Post post) {
-        this.post = post;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "content_type", nullable = false)
+    private ContentType contentType;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 
-    public org.example.nexora.user.User getUser() {
-        return user;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
-    public void setUser(org.example.nexora.user.User user) {
-        this.user = user;
+    public void incrementRepliesCount() {
+        this.repliesCount++;
     }
 
-    public String getContent() {
-        return content;
+    public void decrementRepliesCount() {
+        if (this.repliesCount > 0) {
+            this.repliesCount--;
+        }
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void incrementLikesCount() {
+        this.likesCount++;
     }
 
-    public Comment getParentComment() {
-        return parentComment;
+    public void decrementLikesCount() {
+        if (this.likesCount > 0) {
+            this.likesCount--;
+        }
     }
 
-    public void setParentComment(Comment parentComment) {
-        this.parentComment = parentComment;
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+        this.content = "[deleted]";
     }
 
-    public int getRepliesCount() {
-        return repliesCount;
+    public void editContent(String newContent) {
+        this.content = newContent;
+        this.isEdited = true;
     }
 
-    public void setRepliesCount(int repliesCount) {
-        this.repliesCount = repliesCount;
+    public void flagContent(String reason) {
+        this.contentModerationFlagged = true;
+        this.contentModerationReason = reason;
+    }
+
+    public void unflagContent() {
+        this.contentModerationFlagged = false;
+        this.contentModerationReason = null;
+    }
+
+    public boolean isReply() {
+        return parentCommentId != null;
+    }
+
+    public boolean isTopLevel() {
+        return parentCommentId == null;
     }
 }

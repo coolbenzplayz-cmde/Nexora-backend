@@ -55,6 +55,27 @@ public class User extends BaseEntity {
     @Column(name = "phone_number")
     private String phone;
 
+    @Column(name = "location")
+    private String location;
+
+    @Column(name = "website")
+    private String website;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_expires_at")
+    private LocalDateTime passwordResetExpiresAt;
+
+    @Column(name = "email_verification_token")
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_expires_at")
+    private LocalDateTime emailVerificationExpiresAt;
+
     @Column(name = "date_of_birth")
     private LocalDateTime dateOfBirth;
 
@@ -85,6 +106,24 @@ public class User extends BaseEntity {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "total_views")
+    private Long totalViews = 0L;
+
+    @Column(name = "total_likes")
+    private Long totalLikes = 0L;
+
+    @Column(name = "total_videos")
+    private Long totalVideos = 0L;
+
+    @Column(name = "creator_earnings")
+    private Double creatorEarnings = 0.0;
+
+    @Column(name = "is_creator_verified")
+    private Boolean isCreatorVerified = false;
+
+    @Column(name = "creator_verified_at")
+    private LocalDateTime creatorVerifiedAt;
 
     public enum UserStatus {
         ACTIVE,
@@ -154,12 +193,44 @@ public class User extends BaseEntity {
         this.status = active ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     }
 
-    public void setVerificationToken(String verificationToken) {
-        // This field doesn't exist in current entity, adding it
+    public String getVerificationToken() {
+        return verificationToken;
     }
 
-    public void setPasswordResetToken(String resetToken) {
-        // This field doesn't exist in current entity, adding it
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(String passwordResetToken) {
+        this.passwordResetToken = passwordResetToken;
+    }
+
+    public LocalDateTime getPasswordResetExpiresAt() {
+        return passwordResetExpiresAt;
+    }
+
+    public void setPasswordResetExpiresAt(LocalDateTime passwordResetExpiresAt) {
+        this.passwordResetExpiresAt = passwordResetExpiresAt;
+    }
+
+    public String getEmailVerificationToken() {
+        return emailVerificationToken;
+    }
+
+    public void setEmailVerificationToken(String emailVerificationToken) {
+        this.emailVerificationToken = emailVerificationToken;
+    }
+
+    public LocalDateTime getEmailVerificationExpiresAt() {
+        return emailVerificationExpiresAt;
+    }
+
+    public void setEmailVerificationExpiresAt(LocalDateTime emailVerificationExpiresAt) {
+        this.emailVerificationExpiresAt = emailVerificationExpiresAt;
     }
 
     public UserRole getRole() {
@@ -199,21 +270,19 @@ public class User extends BaseEntity {
     }
 
     public String getLocation() {
-        // This field doesn't exist in current entity
-        return null;
+        return location;
     }
 
     public void setLocation(String location) {
-        // This field doesn't exist in current entity
+        this.location = location;
     }
 
     public String getWebsite() {
-        // This field doesn't exist in current entity
-        return null;
+        return website;
     }
 
     public void setWebsite(String website) {
-        // This field doesn't exist in current entity
+        this.website = website;
     }
 
     public String getAvatarUrl() {
