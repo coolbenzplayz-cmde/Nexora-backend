@@ -1084,13 +1084,7 @@ public class ServiceManagementService {
         public AdminAuditLog save(AdminAuditLog log) { return log; }
     }
 
-    // Service instances
-    private final ServiceRegistryRepository serviceRegistryRepository = new ServiceRegistryRepository();
-    private final ServiceInstanceRepository instanceRepository = new ServiceInstanceRepository();
-    private final ServiceConfigurationRepository configRepository = new ServiceConfigurationRepository();
-    private final ServiceMetricsRepository metricsRepository = new ServiceMetricsRepository();
-    private final ServiceDeploymentRepository deploymentRepository = new ServiceDeploymentRepository();
-    private final AdminAuditLogRepository auditLogRepository = new AdminAuditLogRepository();
+    // Service instances - duplicates removed
 }
 
 class ServiceManagementException extends RuntimeException {

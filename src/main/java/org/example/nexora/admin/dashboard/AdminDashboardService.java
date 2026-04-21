@@ -530,10 +530,5 @@ public class AdminDashboardService {
         public AdminAuthService.AdminAuditLog save(AdminAuthService.AdminAuditLog log) { return log; }
     }
 
-    // Service instances
-    private final ServiceManagementService serviceManagementService = new ServiceManagementService();
-    private final AdminAuthService adminAuthService = new AdminAuthService();
-    private final UserRepository userRepository = new UserRepository();
-    private final SystemConfigurationRepository configRepository = new SystemConfigurationRepository();
-    private final AuditLogRepository auditLogRepository = new AuditLogRepository();
+    // Service instances - duplicates removed
 }

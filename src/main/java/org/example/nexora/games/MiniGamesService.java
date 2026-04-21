@@ -873,11 +873,6 @@ public class MiniGamesService {
         public TournamentParticipation save(TournamentParticipation participation) { return participation; }
     }
 
-    // Service instances
-    private final GameRepository gameRepository = new GameRepository();
-    private final GameSessionRepository sessionRepository = new GameSessionRepository();
-    private final LeaderboardRepository leaderboardRepository = new LeaderboardRepository();
-    private final AchievementRepository achievementRepository = new AchievementRepository();
-    private final RewardService rewardService = new RewardService();
+    // Service instances - duplicates removed
     private final TournamentRepository tournamentRepository = new TournamentRepository();
 }

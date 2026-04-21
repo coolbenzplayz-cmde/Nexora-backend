@@ -959,10 +959,5 @@ public class MarketplaceService {
         }
     }
 
-    // Service instances
-    private final ProductRepository productRepository = new ProductRepository();
-    private final OrderRepository orderRepository = new OrderRepository();
-    private final VendorRepository vendorRepository = new VendorRepository();
-    private final CartRepository cartRepository = new CartRepository();
-    private final PaymentService paymentService = new PaymentService();
+    // Service instances - duplicates removed
 }

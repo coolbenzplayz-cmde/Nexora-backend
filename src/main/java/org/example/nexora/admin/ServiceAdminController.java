@@ -94,9 +94,9 @@ public class ServiceAdminController {
     @PostMapping
     public ResponseEntity<ApiResponse<Service>> createService(
             @Valid @RequestBody CreateServiceRequest request,
-            HttpServletRequest request) {
+            HttpServletRequest httpRequest) {
         
-        verifyAdminAccess(request);
+        verifyAdminAccess(httpRequest);
         Service service = serviceService.createService(request);
         return ResponseEntity.ok(ApiResponse.success(service));
     }
@@ -106,9 +106,9 @@ public class ServiceAdminController {
     public ResponseEntity<ApiResponse<Service>> updateService(
             @PathVariable Long id,
             @Valid @RequestBody UpdateServiceRequest request,
-            HttpServletRequest request) {
+            HttpServletRequest httpRequest) {
         
-        verifyAdminAccess(request);
+        verifyAdminAccess(httpRequest);
         Service service = serviceService.updateService(id, request);
         return ResponseEntity.ok(ApiResponse.success(service));
     }

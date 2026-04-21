@@ -806,8 +806,5 @@ public class CreatorModeService {
         public MonetizationInsights getMonetizationInsights(Long creatorId, InsightsRequest request) { return new MonetizationInsights(); }
     }
 
-    // Service instances
-    private final CreatorRepository creatorRepository = new CreatorRepository();
-    private final CreatorAnalyticsService analyticsService = new CreatorAnalyticsService();
-    private final MonetizationService monetizationService = new MonetizationService();
+    // Service instances - duplicates removed
 }

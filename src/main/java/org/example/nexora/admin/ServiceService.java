@@ -1,7 +1,8 @@
 package org.example.nexora.admin;
 
-import org.example.nexora.admin.Service;
 import org.example.nexora.common.BusinessException;
+import org.example.nexora.admin.dto.CreateServiceRequest;
+import org.example.nexora.admin.dto.UpdateServiceRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +27,7 @@ public class ServiceService {
 
     // 📋 GET ALL SERVICES (PAGINATED)
     @Transactional(readOnly = true)
-    public Page<Service> getAllServices(int page, int size, String sortBy, String sortDir) {
+    public Page<org.example.nexora.admin.Service> getAllServices(int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? 
             Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -35,21 +36,21 @@ public class ServiceService {
 
     // 🔍 GET SERVICE BY ID
     @Transactional(readOnly = true)
-    public Service getServiceById(Long id) {
+    public org.example.nexora.admin.Service getServiceById(Long id) {
         return serviceRepository.findById(id)
             .orElseThrow(() -> new BusinessException("Service not found", "SERVICE_NOT_FOUND"));
     }
 
     // 🔍 GET SERVICE BY NAME
     @Transactional(readOnly = true)
-    public Service getServiceByName(String name) {
+    public org.example.nexora.admin.Service getServiceByName(String name) {
         return serviceRepository.findByName(name)
             .orElseThrow(() -> new BusinessException("Service not found", "SERVICE_NOT_FOUND"));
     }
 
     // 🔍 SEARCH SERVICES WITH FILTERS
     @Transactional(readOnly = true)
-    public Page<Service> searchServices(String name, String category, ServiceStatus status, 
+    public Page<org.example.nexora.admin.Service> searchServices(String name, String category, ServiceStatus status, 
                                        Boolean isPublic, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return serviceRepository.findByFilters(name, category, status, isPublic, pageable);

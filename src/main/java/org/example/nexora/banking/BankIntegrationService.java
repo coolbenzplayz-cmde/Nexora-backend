@@ -877,12 +877,7 @@ public class BankIntegrationService {
         public BankTransaction save(BankTransaction transaction) { return transaction; }
     }
 
-    // Service instances
-    private final BankAccountRepository bankAccountRepository = new BankAccountRepository();
-    private final BankTransferRepository transferRepository = new BankTransferRepository();
-    private final PlaidService plaidService = new PlaidService();
-    private final ACHProcessingService achService = new ACHProcessingService();
-    private final FraudDetectionService fraudDetectionService = new FraudDetectionService();
+    // Service instances - duplicates removed
     private final WireTransferRepository wireTransferRepository = new WireTransferRepository();
     private final BankTransactionRepository bankTransactionRepository = new BankTransactionRepository();
 }
