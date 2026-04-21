@@ -2,6 +2,7 @@ package org.example.nexora.social;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 import org.example.nexora.common.ApiResponse;
 import org.example.nexora.common.BusinessException;
 import org.example.nexora.common.PaginationResponse;
