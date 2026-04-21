@@ -14,7 +14,6 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.config.ContainerProperties;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -137,7 +136,8 @@ public class KafkaConfig {
     public ConcurrentMessageListenerContainer<String, Object> replyContainer(
             ConsumerFactory<String, Object> consumerFactory) {
         
-        ContainerProperties containerProperties = new ContainerProperties("replies-group");
+        org.springframework.kafka.listener.ContainerProperties containerProperties = 
+            new org.springframework.kafka.listener.ContainerProperties("replies-group");
         ConcurrentMessageListenerContainer<String, Object> container = 
             new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
         container.setAutoStartup(false);
