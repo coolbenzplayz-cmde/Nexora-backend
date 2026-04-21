@@ -81,8 +81,8 @@ public class AdminService {
     }
     
     // 👤 UPDATE USER ROLE
-    public String updateUserRole(String userId, Role role) {
-        User user = userRepository.findById(userId)
+    public String updateUserRole(String userId, UserRole role) {
+        User user = userRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(role);
         userRepository.save(user);

@@ -129,15 +129,15 @@ public class ServiceService {
         return serviceRepository.save(existingService);
     }
 
-    // 🗑️ DELETE SERVICE
+    // DELETE SERVICE
     public void deleteService(Long id) {
-        Service service = getServiceById(id);
+        org.example.nexora.admin.Service service = getServiceById(id);
         serviceRepository.delete(service);
     }
 
-    // 🔄 TOGGLE SERVICE STATUS
-    public Service toggleServiceStatus(Long id) {
-        Service service = getServiceById(id);
+    // TOGGLE SERVICE STATUS
+    public org.example.nexora.admin.Service toggleServiceStatus(Long id) {
+        org.example.nexora.admin.Service service = getServiceById(id);
         if (service.getStatus() == ServiceStatus.ACTIVE) {
             service.setStatus(ServiceStatus.INACTIVE);
         } else {
@@ -167,21 +167,21 @@ public class ServiceService {
         return serviceRepository.findAllCategories();
     }
 
-    // 📂 GET SERVICES BY CATEGORY
+    // GET SERVICES BY CATEGORY
     @Transactional(readOnly = true)
     public List<Service> getServicesByCategory(String category) {
         return serviceRepository.findByCategory(category);
     }
 
-    // 🔄 BULK UPDATE SERVICE STATUS
+    // BULK UPDATE SERVICE STATUS
     public int bulkUpdateServiceStatus(List<Long> serviceIds, ServiceStatus status) {
-        List<Service> services = serviceRepository.findAllById(serviceIds);
+        List<org.example.nexora.admin.Service> services = serviceRepository.findAllById(serviceIds);
         services.forEach(service -> service.setStatus(status));
         serviceRepository.saveAll(services);
         return services.size();
     }
 
-    // 📈 GET SERVICES BY STATUS
+    // GET SERVICES BY STATUS
     @Transactional(readOnly = true)
     public List<Service> getServicesByStatus(ServiceStatus status) {
         return serviceRepository.findByStatus(status);

@@ -7,6 +7,7 @@ import org.example.nexora.user.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class WithdrawService {
@@ -72,5 +73,14 @@ public class WithdrawService {
         withdrawRepository.save(request);
 
         return "Withdraw status: " + status + " (risk score: " + riskScore + ")";
+    }
+
+    // HISTORY
+    public List<WithdrawRequest> getMyWithdraws(String token) {
+        String email = jwtService.extractEmail(token.replace("Bearer ", ""));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        return withdrawRepository.findByUser_Id(user.getId());
     }
 }

@@ -44,7 +44,7 @@ public class AdminController {
         
         User user = userOpt.get();
         // Only allow ADMIN role AND the specific owner user
-        if (user.getRole() != Role.ADMIN) {
+        if (user.getRole() != UserRole.ADMIN) {
             throw new BusinessException("Forbidden: Admin access required");
         }
         
@@ -99,7 +99,7 @@ public class AdminController {
     
     // 👤 UPDATE USER ROLE - Admin only
     @PostMapping("/user/{id}/role")
-    public String updateUserRole(@PathVariable String id, @RequestParam Role role, HttpServletRequest request) {
+    public String updateUserRole(@PathVariable String id, @RequestParam UserRole role, HttpServletRequest request) {
         verifyAdminAccess(request);
         return adminService.updateUserRole(id, role);
     }

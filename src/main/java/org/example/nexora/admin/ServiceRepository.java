@@ -44,4 +44,7 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
 
     @Query("SELECT COUNT(s) FROM Service s WHERE s.category = :category")
     long countByCategory(@Param("category") String category);
+
+    @Query("SELECT COUNT(s) FROM Service s WHERE s.isPublic = :isPublic")
+    long countByIsPublic(@Param("isPublic") Boolean isPublic);
 }
