@@ -548,10 +548,6 @@ public class RoleBasedAccessControl {
     }
 
     // Repository instances (would be injected via Spring)
-    private final PermissionRepository permissionRepository = new PermissionRepository();
-    private final RoleRepository roleRepository = new RoleRepository();
-    private final UserRoleRepository userRoleRepository = new UserRoleRepository();
-    private final RolePermissionRepository rolePermissionRepository = new RolePermissionRepository();
     private final AccessLogRepository accessLogRepository = new AccessLogRepository();
     private final RoleChangeLogRepository roleChangeLogRepository = new RoleChangeLogRepository();
 }

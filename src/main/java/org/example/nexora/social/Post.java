@@ -130,4 +130,13 @@ public class Post extends BaseEntity {
     public void setIsEdited(Boolean isEdited) {
         this.isEdited = isEdited;
     }
+
+    /**
+     * Visibility enum
+     */
+    public enum Visibility {
+        PUBLIC,
+        FOLLOWERS,
+        PRIVATE
+    }
 }
