@@ -140,4 +140,14 @@ public class Notification extends BaseEntity {
     public void setCreatedAt(java.time.LocalDateTime createdAt) {
         // BaseEntity handles this automatically
     }
+
+    /**
+     * Notification priority levels
+     */
+    public enum NotificationPriority {
+        LOW,
+        MEDIUM,
+        HIGH,
+        URGENT
+    }
 }
