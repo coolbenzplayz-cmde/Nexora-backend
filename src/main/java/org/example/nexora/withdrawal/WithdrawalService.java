@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.example.nexora.user.User;
+import org.example.nexora.wallet.Wallet;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

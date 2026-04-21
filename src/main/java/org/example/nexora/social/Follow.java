@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_follows_follower_id", columnList = "followerId"),
         @Index(name = "idx_follows_following_id", columnList = "followingId"),
         @Index(name = "idx_follows_created_at", columnList = "createdAt"),
-        @UniqueConstraint(columnNames = {"followerId", "followingId"})
+        @Index(name = "idx_follows_unique", columnList = "followerId, followingId", unique = true)
 })
 public class Follow extends BaseEntity {
 

@@ -872,10 +872,5 @@ public class RideHailingService {
         // Location service methods
     }
 
-    // Service instances
-    private final DriverRepository driverRepository = new DriverRepository();
-    private final RideRepository rideRepository = new RideRepository();
-    private final VehicleRepository vehicleRepository = new VehicleRepository();
-    private final PaymentService paymentService = new PaymentService();
-    private final LocationService locationService = new LocationService();
+    // Service instances - removed duplicates
 }
