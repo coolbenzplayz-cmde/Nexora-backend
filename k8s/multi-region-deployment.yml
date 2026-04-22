@@ -1,0 +1,809 @@
+# Multi-Region Deployment Configuration for 100M+ Users
+# Global CDN and Geographic Distribution
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexora-global
+---
+# North America Region (Primary)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexora-na
+  labels:
+    region: north-america
+    primary: "true"
+---
+# Europe Region
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexora-eu
+  labels:
+    region: europe
+    primary: "false"
+---
+# Asia Pacific Region
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexora-apac
+  labels:
+    region: asia-pacific
+    primary: "false"
+---
+# Global CDN Configuration
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: nexora-global-gateway
+  namespace: nexora-global
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*.nexora.com"
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "*.nexora.com"
+    tls:
+      mode: SIMPLE
+      credentialName: nexora-global-tls
+---
+# Global Virtual Service with Geo-Based Routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: nexora-global-vs
+  namespace: nexora-global
+spec:
+  hosts:
+  - "api.nexora.com"
+  - "cdn.nexora.com"
+  - "admin.nexora.com"
+  gateways:
+  - nexora-global-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1/
+    fault:
+      delay:
+        percentage:
+          value: 0.1
+        fixedDelay: 5s
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+      retryOn: 5xx,gateway-error,connect-failure,refused-stream
+    route:
+    - destination:
+        host: nexora-api-gateway-service
+        port:
+          number: 80
+        subset: primary
+      weight: 60
+    - destination:
+        host: nexora-api-gateway-service
+        port:
+          number: 80
+        subset: secondary
+      weight: 40
+    timeout: 30s
+  - match:
+    - uri:
+        prefix: /cdn/
+    route:
+    - destination:
+        host: content-service
+        port:
+          number: 80
+        subset: cdn-primary
+      weight: 70
+    - destination:
+        host: content-service
+        port:
+          number: 80
+        subset: cdn-secondary
+      weight: 30
+    timeout: 10s
+---
+# North America API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-api-gateway-na
+  namespace: nexora-na
+  labels:
+    app: nexora-api-gateway
+    region: north-america
+    version: v1
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+      region: north-america
+  template:
+    metadata:
+      labels:
+        app: nexora-api-gateway
+        region: north-america
+        version: v1
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                - us-east-1a
+                - us-east-1b
+                - us-east-1c
+                - us-west-2a
+                - us-west-2b
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - nexora-api-gateway
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: nexora-api-gateway
+        image: nexora/api-gateway:enterprise
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise,na"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets-na
+              key: database-master-url
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets-na
+              key: redis-cluster-url
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config-na
+              key: kafka-bootstrap-servers
+        - name: REGION
+          value: "north-america"
+        - name: JVM_OPTS
+          value: "-Xms4g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+# Europe API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-api-gateway-eu
+  namespace: nexora-eu
+  labels:
+    app: nexora-api-gateway
+    region: europe
+    version: v1
+spec:
+  replicas: 60
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+      region: europe
+  template:
+    metadata:
+      labels:
+        app: nexora-api-gateway
+        region: europe
+        version: v1
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                - eu-west-1a
+                - eu-west-1b
+                - eu-west-1c
+                - eu-central-1a
+                - eu-central-1b
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - nexora-api-gateway
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: nexora-api-gateway
+        image: nexora/api-gateway:enterprise
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise,eu"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets-eu
+              key: database-master-url
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets-eu
+              key: redis-cluster-url
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config-eu
+              key: kafka-bootstrap-servers
+        - name: REGION
+          value: "europe"
+        - name: JVM_OPTS
+          value: "-Xms4g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+# Asia Pacific API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-api-gateway-apac
+  namespace: nexora-apac
+  labels:
+    app: nexora-api-gateway
+    region: asia-pacific
+    version: v1
+spec:
+  replicas: 40
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+      region: asia-pacific
+  template:
+    metadata:
+      labels:
+        app: nexora-api-gateway
+        region: asia-pacific
+        version: v1
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                - ap-southeast-1a
+                - ap-southeast-1b
+                - ap-southeast-1c
+                - ap-northeast-1a
+                - ap-northeast-1b
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - nexora-api-gateway
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: nexora-api-gateway
+        image: nexora/api-gateway:enterprise
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise,apac"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets-apac
+              key: database-master-url
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets-apac
+              key: redis-cluster-url
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config-apac
+              key: kafka-bootstrap-servers
+        - name: REGION
+          value: "asia-pacific"
+        - name: JVM_OPTS
+          value: "-Xms4g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+# Global Content Distribution Network
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexora-cdn-service
+  namespace: nexora-global
+  labels:
+    app: nexora-cdn
+    tier: frontend
+spec:
+  selector:
+    app: nexora-cdn
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  type: ClusterIP
+---
+# CDN Edge Nodes (North America)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-cdn-na
+  namespace: nexora-na
+  labels:
+    app: nexora-cdn
+    region: north-america
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: nexora-cdn
+      region: north-america
+  template:
+    metadata:
+      labels:
+        app: nexora-cdn
+        region: north-america
+    spec:
+      containers:
+      - name: nexora-cdn
+        image: nexora/cdn:enterprise
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        env:
+        - name: REGION
+          value: "north-america"
+        - name: CACHE_SIZE
+          value: "500GB"
+        - name: CDN_ENDPOINT
+          value: "cdn-na.nexora.com"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: cache-volume
+          mountPath: /var/cache/nginx
+      volumes:
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 500Gi
+---
+# CDN Edge Nodes (Europe)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-cdn-eu
+  namespace: nexora-eu
+  labels:
+    app: nexora-cdn
+    region: europe
+spec:
+  replicas: 30
+  selector:
+    matchLabels:
+      app: nexora-cdn
+      region: europe
+  template:
+    metadata:
+      labels:
+        app: nexora-cdn
+        region: europe
+    spec:
+      containers:
+      - name: nexora-cdn
+        image: nexora/cdn:enterprise
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        env:
+        - name: REGION
+          value: "europe"
+        - name: CACHE_SIZE
+          value: "300GB"
+        - name: CDN_ENDPOINT
+          value: "cdn-eu.nexora.com"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: cache-volume
+          mountPath: /var/cache/nginx
+      volumes:
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 300Gi
+---
+# CDN Edge Nodes (Asia Pacific)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-cdn-apac
+  namespace: nexora-apac
+  labels:
+    app: nexora-cdn
+    region: asia-pacific
+spec:
+  replicas: 20
+  selector:
+    matchLabels:
+      app: nexora-cdn
+      region: asia-pacific
+  template:
+    metadata:
+      labels:
+        app: nexora-cdn
+        region: asia-pacific
+    spec:
+      containers:
+      - name: nexora-cdn
+        image: nexora/cdn:enterprise
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        env:
+        - name: REGION
+          value: "asia-pacific"
+        - name: CACHE_SIZE
+          value: "200GB"
+        - name: CDN_ENDPOINT
+          value: "cdn-apac.nexora.com"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: cache-volume
+          mountPath: /var/cache/nginx
+      volumes:
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 200Gi
+---
+# Global Load Balancer with Geo-Based Routing
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: nexora-destination-rule
+  namespace: nexora-global
+spec:
+  host: nexora-api-gateway-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 10000
+      http:
+        http1MaxPendingRequests: 10000
+        maxRequestsPerConnection: 10
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+    outlierDetection:
+      consecutiveGatewayErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: primary
+    labels:
+      version: v1
+      region: north-america
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+  - name: secondary
+    labels:
+      version: v1
+      region: europe
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+  - name: tertiary
+    labels:
+      version: v1
+      region: asia-pacific
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+---
+# Global Service Mesh Configuration
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: nexora-global
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: nexora-authz
+  namespace: nexora-global
+spec:
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+---
+# Global Monitoring Configuration
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: nexora-global-monitor
+  namespace: nexora-global
+  labels:
+    app: nexora-monitor
+spec:
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /actuator/prometheus
+---
+# Global Alerting Rules
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nexora-global-alerts
+  namespace: nexora-global
+spec:
+  groups:
+  - name: nexora-global.rules
+    rules:
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value }} errors per second"
+    - alert: HighLatency
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency detected"
+        description: "95th percentile latency is {{ $value }} seconds"
+    - alert: ServiceDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Service is down"
+        description: "Service {{ $labels.instance }} is down"
+---
+# Global Autoscaling Configuration
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexora-api-gateway-global-hpa
+  namespace: nexora-global
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexora-api-gateway-na
+  minReplicas: 50
+  maxReplicas: 500
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "5000"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 50
+        periodSeconds: 30
+      selectPolicy: Max
+---
+# Global Resource Quotas
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: nexora-global-quota
+  namespace: nexora-global
+spec:
+  hard:
+    requests.cpu: "5000"
+    requests.memory: 20000Gi
+    limits.cpu: "10000"
+    limits.memory: 40000Gi
+    persistentvolumeclaims: "500"
+    services: "200"
+    secrets: "500"
+    configmaps: "500"
+    count/deployments.apps: "100"
+    count/pods: "10000"
+---
+# Global Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nexora-global-network-policy
+  namespace: nexora-global
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - podSelector:
+        matchLabels:
+          app: nexora-api-gateway
+    - podSelector:
+        matchLabels:
+          app: nexora-cdn
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: nexora-global
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80

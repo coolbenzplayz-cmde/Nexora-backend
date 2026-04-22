@@ -1,0 +1,725 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexora-enterprise
+---
+# API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexora-api-gateway
+  namespace: nexora-enterprise
+  labels:
+    app: nexora-api-gateway
+    version: v1
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+  template:
+    metadata:
+      labels:
+        app: nexora-api-gateway
+        version: v1
+    spec:
+      containers:
+      - name: nexora-api-gateway
+        image: nexora/api-gateway:enterprise
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: database-master-url
+        - name: DATABASE_READ_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: database-replica-url
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: redis-cluster-url
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: kafka-bootstrap-servers
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: elasticsearch-url
+        - name: JVM_OPTS
+          value: "-Xms4g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: cache-volume
+          mountPath: /app/cache
+      volumes:
+      - name: config-volume
+        configMap:
+          name: nexora-config
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - nexora-api-gateway
+              topologyKey: kubernetes.io/hostname
+---
+# API Gateway Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexora-api-gateway-service
+  namespace: nexora-enterprise
+spec:
+  selector:
+    app: nexora-api-gateway
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+---
+# API Gateway HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexora-api-gateway-hpa
+  namespace: nexora-enterprise
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexora-api-gateway
+  minReplicas: 50
+  maxReplicas: 200
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "1000"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+---
+# User Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: nexora-enterprise
+  labels:
+    app: user-service
+    version: v1
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: v1
+    spec:
+      containers:
+      - name: user-service
+        image: nexora/user-service:enterprise
+        ports:
+        - containerPort: 8081
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: database-master-url
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: redis-cluster-url
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - user-service
+              topologyKey: kubernetes.io/hostname
+---
+# Content Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: content-service
+  namespace: nexora-enterprise
+  labels:
+    app: content-service
+    version: v1
+spec:
+  replicas: 150
+  selector:
+    matchLabels:
+      app: content-service
+  template:
+    metadata:
+      labels:
+        app: content-service
+        version: v1
+    spec:
+      containers:
+      - name: content-service
+        image: nexora/content-service:enterprise
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: database-master-url
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: elasticsearch-url
+        - name: STORAGE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: storage-service-url
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - content-service
+              topologyKey: kubernetes.io/hostname
+---
+# Payment Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: nexora-enterprise
+  labels:
+    app: payment-service
+    version: v1
+spec:
+  replicas: 125
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+        version: v1
+    spec:
+      containers:
+      - name: payment-service
+        image: nexora/payment-service:enterprise
+        ports:
+        - containerPort: 8083
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: database-master-url
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: redis-cluster-url
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8083
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8083
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - payment-service
+              topologyKey: kubernetes.io/hostname
+---
+# Notification Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: nexora-enterprise
+  labels:
+    app: notification-service
+    version: v1
+spec:
+  replicas: 75
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        version: v1
+    spec:
+      containers:
+      - name: notification-service
+        image: nexora/notification-service:enterprise
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: kafka-bootstrap-servers
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: redis-cluster-url
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8084
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8084
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - notification-service
+              topologyKey: kubernetes.io/hostname
+---
+# Analytics Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+  namespace: nexora-enterprise
+  labels:
+    app: analytics-service
+    version: v1
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: analytics-service
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+        version: v1
+    spec:
+      containers:
+      - name: analytics-service
+        image: nexora/analytics-service:enterprise
+        ports:
+        - containerPort: 8085
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "enterprise"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexora-secrets
+              key: database-replica-url
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: elasticsearch-url
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: nexora-config
+              key: kafka-bootstrap-servers
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "4000m"
+          limits:
+            memory: "16Gi"
+            cpu: "8000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8085
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8085
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - analytics-service
+              topologyKey: kubernetes.io/hostname
+---
+# Global Ingress with Rate Limiting
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexora-global-ingress
+  namespace: nexora-enterprise
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/load-balance: "round_robin"
+    nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
+    nginx.ingress.kubernetes.io/limit-connections: "100"
+    nginx.ingress.kubernetes.io/limit-connections-per-second: "50"
+    nginx.ingress.kubernetes.io/limit-burst: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "1000"
+spec:
+  tls:
+  - hosts:
+    - api.nexora.com
+    - cdn.nexora.com
+    - admin.nexora.com
+    secretName: nexora-global-tls
+  rules:
+  - host: api.nexora.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nexora-api-gateway-service
+            port:
+              number: 80
+  - host: cdn.nexora.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: content-service
+            port:
+              number: 80
+  - host: admin.nexora.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nexora-api-gateway-service
+            port:
+              number: 80
+---
+# Pod Disruption Budgets
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nexora-api-gateway-pdb
+  namespace: nexora-enterprise
+spec:
+  minAvailable: 25
+  selector:
+    matchLabels:
+      app: nexora-api-gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: user-service-pdb
+  namespace: nexora-enterprise
+spec:
+  minAvailable: 50
+  selector:
+    matchLabels:
+      app: user-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: content-service-pdb
+  namespace: nexora-enterprise
+spec:
+  minAvailable: 75
+  selector:
+    matchLabels:
+      app: content-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payment-service-pdb
+  namespace: nexora-enterprise
+spec:
+  minAvailable: 62
+  selector:
+    matchLabels:
+      app: payment-service
+---
+# Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nexora-network-policy
+  namespace: nexora-enterprise
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: nexora-api-gateway
+    - podSelector:
+        matchLabels:
+          app: user-service
+    - podSelector:
+        matchLabels:
+          app: content-service
+    - podSelector:
+        matchLabels:
+          app: payment-service
+    - podSelector:
+        matchLabels:
+          app: notification-service
+    - podSelector:
+        matchLabels:
+          app: analytics-service
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: nexora-enterprise
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+# Resource Quotas
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: nexora-resource-quota
+  namespace: nexora-enterprise
+spec:
+  hard:
+    requests.cpu: "1000"
+    requests.memory: 4000Gi
+    limits.cpu: "2000"
+    limits.memory: 8000Gi
+    persistentvolumeclaims: "100"
+    services: "50"
+    secrets: "100"
+    configmaps: "100"
+---
+# Limit Ranges
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: nexora-limit-range
+  namespace: nexora-enterprise
+spec:
+  limits:
+  - default:
+      cpu: "4000m"
+      memory: "8Gi"
+    defaultRequest:
+      cpu: "2000m"
+      memory: "4Gi"
+    type: Container
+  - max:
+      cpu: "8000m"
+      memory: "16Gi"
+    min:
+      cpu: "1000m"
+      memory: "2Gi"
+    type: Container

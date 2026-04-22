@@ -2,6 +2,7 @@ package org.example.nexora.feed;
 
 import lombok.RequiredArgsConstructor;
 import org.example.nexora.common.ApiResponse;
+import org.example.nexora.feed.dto.RefreshFeedRequest;
 import org.example.nexora.user.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
