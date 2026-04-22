@@ -7,7 +7,6 @@ import java.util.List;
 /**
  * Result class for withdrawal request operations
  */
-@Data
 public class WithdrawalRequestResult {
     
     private boolean success;
@@ -16,6 +15,25 @@ public class WithdrawalRequestResult {
     private LocalDateTime estimatedProcessingTime;
     private List<String> errors;
     private String transactionId;
+    
+    // Manual getters/setters to fix Lombok issues
+    public boolean isSuccess() { return success; }
+    public void setSuccess(boolean success) { this.success = success; }
+    
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    
+    public WithdrawalRequest getWithdrawalRequest() { return withdrawalRequest; }
+    public void setWithdrawalRequest(WithdrawalRequest withdrawalRequest) { this.withdrawalRequest = withdrawalRequest; }
+    
+    public LocalDateTime getEstimatedProcessingTime() { return estimatedProcessingTime; }
+    public void setEstimatedProcessingTime(LocalDateTime estimatedProcessingTime) { this.estimatedProcessingTime = estimatedProcessingTime; }
+    
+    public List<String> getErrors() { return errors; }
+    public void setErrors(List<String> errors) { this.errors = errors; }
+    
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
     
     public static WithdrawalRequestResult success(WithdrawalRequest request) {
         WithdrawalRequestResult result = new WithdrawalRequestResult();
