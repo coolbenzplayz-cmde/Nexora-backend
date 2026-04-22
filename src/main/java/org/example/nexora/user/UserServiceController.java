@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.example.nexora.user.dto.PrivacySettingsRequest;
+import org.example.nexora.user.dto.UpdateProfileRequest;
+import org.example.nexora.search.dto.UserSearchRequest;
 
 /**
  * User Service Controller - Handles user management endpoints

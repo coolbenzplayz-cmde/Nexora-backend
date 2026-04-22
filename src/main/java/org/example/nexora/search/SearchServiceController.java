@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.example.nexora.search.dto.IndexRequest;
+import org.example.nexora.search.dto.GlobalSearchRequest;
+import org.example.nexora.search.dto.UserSearchRequest;
+import org.example.nexora.search.dto.ContentSearchRequest;
+import org.example.nexora.search.dto.ProductSearchRequest;
+import org.example.nexora.search.dto.LocationSearchRequest;
 
 /**
  * Search Service Controller - Handles search endpoints

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * Authentication Filter for API Gateway

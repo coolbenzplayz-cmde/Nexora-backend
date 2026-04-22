@@ -6,10 +6,14 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.example.nexora.common.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "media_editing_jobs", indexes = {
         @Index(name = "idx_media_jobs_user", columnList = "user_id"),
-        @Index(name = "idx_media_jobs_status", columnList = "status")
+        @Index(name = "idx_media_jobs_status", columnList = "status"),
+        @Index(name = "idx_media_jobs_scheduled", columnList = "scheduled_at"),
+        @Index(name = "idx_media_jobs_template", columnList = "template_id")
 })
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -36,65 +40,129 @@ public class EditingJob extends BaseEntity {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
+    @Column(name = "editing_config", columnDefinition = "JSON")
+    private String editingConfig;
+
+    @Column(name = "template_id")
+    private Long templateId;
+
+    @Column(name = "scheduled_at")
+    private LocalDateTime scheduledAt;
+
+    @Column(name = "publishing_platforms", length = 500)
+    private String publishingPlatforms;
+
+    @Column(name = "monetization_enabled", nullable = false)
+    private Boolean monetizationEnabled = false;
+
+    @Column(name = "monetization_settings", columnDefinition = "JSON")
+    private String monetizationSettings;
+
+    @Column(name = "collaboration_enabled", nullable = false)
+    private Boolean collaborationEnabled = false;
+
+    @Column(name = "version_count")
+    private Integer versionCount = 0;
+
+    @Column(name = "current_version")
+    private Integer currentVersion = 1;
+
+    @Column(name = "thumbnail_uri", length = 1024)
+    private String thumbnailUri;
+
+    @Column(name = "duration")
+    private Double duration;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
+    @Column(name = "dimensions")
+    private String dimensions;
+
+    @Column(name = "format")
+    private String format;
+
+    @Column(name = "quality")
+    private String quality;
+
+    @Column(name = "tags", length = 500)
+    private String tags;
+
+    @Column(name = "category", length = 100)
+    private String category;
+
+    @Column(name = "is_public", nullable = false)
+    private Boolean isPublic = false;
+
+    @Column(name = "view_count")
+    private Long viewCount = 0L;
+
+    @Column(name = "like_count")
+    private Long likeCount = 0L;
+
+    @Column(name = "share_count")
+    private Long shareCount = 0L;
+
+    @Column(name = "download_count")
+    private Long downloadCount = 0L;
+
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
     public enum EditingJobType {
         IMAGE,
         VIDEO,
-        AUDIO
+        AUDIO,
+        CAROUSEL,
+        STORY,
+        REEL,
+        THUMBNAIL,
+        BANNER,
+        COLLAGE,
+        MEME,
+        GIF
     }
 
     public enum EditingJobStatus {
         QUEUED,
         PROCESSING,
         COMPLETED,
-        FAILED
+        FAILED,
+        SCHEDULED,
+        PUBLISHED,
+        EXPIRED,
+        CANCELLED
     }
 
-    // Explicit getters and setters to ensure they exist
-    public Long getUserId() {
-        return userId;
+    // Helper methods for engagement tracking
+    public void incrementViews() {
+        this.viewCount++;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void incrementLikes() {
+        this.likeCount++;
     }
 
-    public EditingJobType getJobType() {
-        return jobType;
+    public void incrementShares() {
+        this.shareCount++;
     }
 
-    public void setJobType(EditingJobType jobType) {
-        this.jobType = jobType;
+    public void incrementDownloads() {
+        this.downloadCount++;
     }
 
-    public EditingJobStatus getStatus() {
-        return status;
+    public boolean isPublished() {
+        return status == EditingJobStatus.PUBLISHED;
     }
 
-    public void setStatus(EditingJobStatus status) {
-        this.status = status;
+    public boolean isScheduled() {
+        return status == EditingJobStatus.SCHEDULED;
     }
 
-    public String getSourceUri() {
-        return sourceUri;
-    }
-
-    public void setSourceUri(String sourceUri) {
-        this.sourceUri = sourceUri;
-    }
-
-    public String getResultUri() {
-        return resultUri;
-    }
-
-    public void setResultUri(String resultUri) {
-        this.resultUri = resultUri;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+    public boolean isExpired() {
+        return expiresAt != null && expiresAt.isBefore(LocalDateTime.now());
     }
 }

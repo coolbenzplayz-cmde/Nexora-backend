@@ -18,10 +18,23 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Spring Boot BOM
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.3.2')
+    // Spring Cloud BOM
+    implementation platform('org.springframework.cloud:spring-cloud-dependencies:2023.0.3')
+    // Spring Cloud Gateway
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    // Spring Cloud OpenFeign
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     // 🔐 SECURITY
     implementation 'org.springframework.boot:spring-boot-starter-security'
     // 🗄 JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    
+    // Elasticsearch
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     // 🐘 POSTGRES
     runtimeOnly 'org.postgresql:postgresql'
     // 🔴 REDIS

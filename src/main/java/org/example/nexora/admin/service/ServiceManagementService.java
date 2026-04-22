@@ -1,5 +1,9 @@
 package org.example.nexora.admin.service;
 
+import org.example.nexora.admin.AdminAuthService;
+import org.example.nexora.admin.service.ServiceManagementService;
+import org.example.nexora.user.UserRepository;
+import org.example.nexora.admin.ValidationResultSimple;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +47,7 @@ public class ServiceManagementService {
 
         try {
             // Validate request
-            ValidationResult validation = validateServiceRegistration(request);
+            ValidationResultSimple validation = validateServiceRegistration(request);
             if (!validation.isValid()) {
                 return ServiceRegistrationResult.failure(validation.getErrors());
             }
@@ -446,8 +450,8 @@ public class ServiceManagementService {
     }
 
     // Private helper methods
-    private ValidationResult validateServiceRegistration(ServiceRegistrationRequest request) {
-        ValidationResult result = new ValidationResult();
+    private ValidationResultSimple validateServiceRegistration(ServiceRegistrationRequest request) {
+        ValidationResultSimple result = new ValidationResultSimple();
 
         if (request.getServiceName() == null || request.getServiceName().trim().isEmpty()) {
             result.addError("Service name is required");

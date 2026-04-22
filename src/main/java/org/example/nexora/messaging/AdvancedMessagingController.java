@@ -280,7 +280,7 @@ public class AdvancedMessagingController {
     @PostMapping("/calls/peer-connection/{connectionId}/ice-candidate")
     public ResponseEntity<VideoCallService.PeerConnectionResult> handleICECandidate(
             @PathVariable String connectionId,
-            @RequestBody VideoCallService.ICECandidate candidate) {
+            @RequestBody ICECandidate candidate) {
         
         VideoCallService.PeerConnectionResult result = videoCallService.handleICECandidate(connectionId, candidate);
         
