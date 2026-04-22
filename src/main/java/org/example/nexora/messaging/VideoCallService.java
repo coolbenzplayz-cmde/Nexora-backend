@@ -885,11 +885,5 @@ public class VideoCallService {
         AUDIO, VIDEO, SCREEN_SHARE
     }
 
-    // Service instances
-    private final WebRTCService webRTCService = new WebRTCService();
-    private final CallRecordingService recordingService = new CallRecordingService();
-    private final BandwidthManager bandwidthManager = new BandwidthManager();
-    private final QualityOptimizer qualityOptimizer = new QualityOptimizer();
-    private final CallAnalyticsService analyticsService = new CallAnalyticsService();
-    private final NotificationService notificationService = new NotificationService();
+    // Service instances - duplicates removed
 }

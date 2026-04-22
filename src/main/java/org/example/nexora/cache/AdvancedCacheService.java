@@ -525,8 +525,5 @@ public class AdvancedCacheService {
         public void resolveConflicts() {}
     }
 
-    // Service instances
-    private final CacheAnalyticsService analyticsService = new CacheAnalyticsService();
-    private final CachePartitionService partitionService = new CachePartitionService();
-    private final CacheSynchronizationService syncService = new CacheSynchronizationService();
+    // Service instances - duplicates removed
 }

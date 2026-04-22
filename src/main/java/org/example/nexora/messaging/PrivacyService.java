@@ -619,10 +619,5 @@ public class PrivacyService {
         public void sendPrivacyNotification(Long userId, String title, String message) {}
     }
 
-    // Service instances
-    private final UserRepository userRepository = new UserRepository();
-    private final ConversationRepository conversationRepository = new ConversationRepository();
-    private final EncryptionService encryptionService = new EncryptionService();
-    private final ModerationService moderationService = new ModerationService();
-    private final NotificationService notificationService = new NotificationService();
+    // Service instances - duplicates removed
 }

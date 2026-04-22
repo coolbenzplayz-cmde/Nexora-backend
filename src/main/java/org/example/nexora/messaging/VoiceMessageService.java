@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -643,10 +644,5 @@ public class VoiceMessageService {
         public byte[] enhanceAudio(byte[] audioData) { return audioData; }
     }
 
-    // Service instances
-    private final AudioProcessingService audioProcessingService = new AudioProcessingService();
-    private final TranscriptionService transcriptionService = new TranscriptionService();
-    private final StorageService storageService = new StorageService();
-    private final VoiceEffectsService voiceEffectsService = new VoiceEffectsService();
-    private final QualityEnhancementService qualityEnhancementService = new QualityEnhancementService();
+    // Service instances - duplicates removed
 }

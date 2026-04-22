@@ -995,13 +995,5 @@ public class AdvancedMessagingService {
         public Optional<Conversation> findById(Long id) { return Optional.empty(); }
     }
 
-    // Service instances
-    private final MessageRepository messageRepository = new MessageRepository();
-    private final ConversationRepository conversationRepository = new ConversationRepository();
-    private final VoiceMessageService voiceMessageService = new VoiceMessageService();
-    private final VideoCallService videoCallService = new VideoCallService();
-    private final EncryptionService encryptionService = new EncryptionService();
-    private final PrivacyService privacyService = new PrivacyService();
-    private final NotificationService notificationService = new NotificationService();
-    private final ModerationService moderationService = new ModerationService();
+    // Service instances - duplicates removed
 }

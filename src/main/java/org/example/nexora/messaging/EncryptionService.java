@@ -625,8 +625,5 @@ public class EncryptionService {
         public void logKeyRevocation(Long userId, String algorithm, int keySize) {}
     }
 
-    // Service instances
-    private final KeyStoreService keyStoreService = new KeyStoreService();
-    private final SecureStorageService secureStorageService = new SecureStorageService();
-    private final AuditService auditService = new AuditService();
+    // Service instances - duplicates removed
 }
