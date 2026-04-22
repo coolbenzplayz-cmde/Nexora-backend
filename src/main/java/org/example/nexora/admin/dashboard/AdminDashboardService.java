@@ -1,6 +1,6 @@
 package org.example.nexora.admin.dashboard;
 
-import org.example.nexora.admin.AdminAuthService;
+import org.example.nexora.admin.auth.AdminAuthService;
 import org.example.nexora.admin.service.ServiceManagementService;
 import org.example.nexora.user.UserRepository;
 import lombok.Data;

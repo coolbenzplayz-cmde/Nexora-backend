@@ -38,6 +38,11 @@ public class ValidationResultSimple {
         this.errors = errors;
     }
     
+    public void addError(String error) {
+        this.errors.add(error);
+        this.valid = false;
+    }
+    
     public static ValidationResultSimple success() {
         return new ValidationResultSimple(true, new java.util.ArrayList<>());
     }

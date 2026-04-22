@@ -652,14 +652,14 @@ class LocationSearchResult {
 }
 
 class UserSearchResult {
-    private java.util.List<UserSearchResult> users;
+    private java.util.List<UserSearchResultItem> users;
     private long total;
     private int page;
     private int size;
 }
 
 class ContentSearchResult {
-    private java.util.List<ContentSearchResult> content;
+    private java.util.List<ContentSearchResultItem> content;
     private long total;
     private int page;
     private int size;
@@ -667,7 +667,7 @@ class ContentSearchResult {
 }
 
 class ProductSearchResult {
-    private java.util.List<ProductSearchResult> products;
+    private java.util.List<ProductSearchResultItem> products;
     private long total;
     private int page;
     private int size;
@@ -675,10 +675,49 @@ class ProductSearchResult {
 }
 
 class LocationSearchResult {
-    private java.util.List<LocationSearchResult> results;
+    private java.util.List<LocationSearchResultItem> results;
     private long total;
     private int page;
     private int size;
+}
+
+class UserSearchResultItem {
+    private String id;
+    private String username;
+    private String email;
+    private String displayName;
+    private String profilePicture;
+    private java.util.Map<String, Object> metadata;
+}
+
+class ContentSearchResultItem {
+    private String id;
+    private String title;
+    private String description;
+    private String contentType;
+    private String author;
+    private java.time.LocalDateTime createdAt;
+    private java.util.Map<String, Object> metadata;
+}
+
+class ProductSearchResultItem {
+    private String id;
+    private String name;
+    private String description;
+    private String category;
+    private Double price;
+    private String currency;
+    private java.util.Map<String, Object> metadata;
+}
+
+class LocationSearchResultItem {
+    private String id;
+    private String name;
+    private String type;
+    private Double latitude;
+    private Double longitude;
+    private Double distance;
+    private java.util.Map<String, Object> metadata;
 }
 
 class TrendingSearch {

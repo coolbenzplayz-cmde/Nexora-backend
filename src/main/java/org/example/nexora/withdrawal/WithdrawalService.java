@@ -312,7 +312,7 @@ public class WithdrawalService {
     }
 
     // Private helper methods
-    private ValidationResult validateWithdrawalRequest(User user, Wallet wallet, WithdrawalRequest request) {
+    private ValidationResult validateWithdrawalRequest(WithdrawalRequestSimple request) {
         ValidationResult result = new ValidationResult();
 
         // Validate amount
@@ -322,11 +322,6 @@ public class WithdrawalService {
 
         if (request.getAmount().compareTo(BigDecimal.valueOf(10)) < 0) {
             result.addError("Minimum withdrawal amount is $10");
-        }
-
-        // Check sufficient balance
-        if (wallet.getAvailableBalance().compareTo(request.getAmount()) < 0) {
-            result.addError("Insufficient balance");
         }
 
         // Validate payment method
@@ -342,7 +337,7 @@ public class WithdrawalService {
         return result;
     }
 
-    private WithdrawalPriority determineWithdrawalPriority(User user, WithdrawalRequest request) {
+    private WithdrawalPriority determineWithdrawalPriority(User user, WithdrawalRequestSimple request) {
         // High priority for verified users, large amounts, or premium users
         if (user.getIsCreatorVerified() || request.getAmount().compareTo(BigDecimal.valueOf(10000)) > 0) {
             return WithdrawalPriority.HIGH;
@@ -353,7 +348,7 @@ public class WithdrawalService {
         }
     }
 
-    private LocalDateTime calculateEstimatedProcessingTime(WithdrawalRequest request) {
+    private LocalDateTime calculateEstimatedProcessingTime(WithdrawalRequestSimple request) {
         int hours = 24; // Base processing time
 
         if (request.getPriority() == WithdrawalPriority.HIGH) {
@@ -402,13 +397,13 @@ public class WithdrawalService {
         return true;
     }
 
-    private void lockFunds(Wallet wallet, WithdrawalRequest request) {
+    private void lockFunds(Wallet wallet, WithdrawalRequestSimple request) {
         wallet.setFrozenBalance(wallet.getFrozenBalance().add(request.getAmount()));
         wallet.setAvailableBalance(wallet.getAvailableBalance().subtract(request.getAmount()));
         walletRepository.save(wallet);
     }
 
-    private void routeForApproval(WithdrawalRequest request) {
+    private void routeForApproval(WithdrawalRequestSimple request) {
         // Determine approval workflow based on amount and priority
         if (request.getAmount().compareTo(BigDecimal.valueOf(1000)) <= 0 && 
             request.getPriority() == WithdrawalPriority.LOW) {
@@ -427,7 +422,7 @@ public class WithdrawalService {
         }
     }
 
-    private void sendWithdrawalNotifications(WithdrawalRequest request, User user) {
+    private void sendWithdrawalNotifications(WithdrawalRequestSimple request, User user) {
         // Send notification to user
         notificationService.sendWithdrawalCreatedNotification(user, request);
         
@@ -437,7 +432,7 @@ public class WithdrawalService {
         }
     }
 
-    private boolean canApproveRequest(WithdrawalRequest request, Long approverId) {
+    private boolean canApproveRequest(WithdrawalRequestSimple request, Long approverId) {
         // Check if approver has sufficient permissions
         User approver = userRepository.findById(approverId).orElse(null);
         if (approver == null) return false;
@@ -454,18 +449,18 @@ public class WithdrawalService {
         return false;
     }
 
-    private void updateRequestStatus(WithdrawalRequest request, WithdrawalStatus status) {
+    private void updateRequestStatus(WithdrawalRequestSimple request, WithdrawalStatus status) {
         request.setStatus(status);
         withdrawalRepository.save(request);
     }
 
-    private boolean isFullyApproved(WithdrawalRequest request) {
+    private boolean isFullyApproved(WithdrawalRequestSimple request) {
         // Check if all required approvals are received
         List<Approval> approvals = approvalRepository.findByWithdrawalRequestId(request.getId());
         return approvals.stream().anyMatch(a -> a.getAction() == ApprovalAction.APPROVED);
     }
 
-    private void deductFunds(WithdrawalRequest request) {
+    private void deductFunds(WithdrawalRequestSimple request) {
         Wallet wallet = walletRepository.findByUserId(request.getUserId()).orElse(null);
         if (wallet != null) {
             wallet.setFrozenBalance(wallet.getFrozenBalance().subtract(request.getAmount()));
@@ -474,7 +469,7 @@ public class WithdrawalService {
         }
     }
 
-    private void releaseFunds(WithdrawalRequest request) {
+    private void releaseFunds(WithdrawalRequestSimple request) {
         Wallet wallet = walletRepository.findByUserId(request.getUserId()).orElse(null);
         if (wallet != null) {
             wallet.setFrozenBalance(wallet.getFrozenBalance().subtract(request.getAmount()));
@@ -483,7 +478,7 @@ public class WithdrawalService {
         }
     }
 
-    private ProcessingResult processWithdrawalByMethod(WithdrawalRequest request) {
+    private ProcessingResult processWithdrawalByMethod(WithdrawalRequestSimple request) {
         ProcessingResult result = new ProcessingResult();
         
         switch (request.getPaymentMethod()) {
@@ -504,7 +499,7 @@ public class WithdrawalService {
         return result;
     }
 
-    private ProcessingResult processBankTransfer(WithdrawalRequest request) {
+    private ProcessingResult processBankTransfer(WithdrawalRequestSimple request) {
         // Simplified bank transfer processing
         ProcessingResult result = new ProcessingResult();
         result.setSuccess(true);
@@ -513,7 +508,7 @@ public class WithdrawalService {
         return result;
     }
 
-    private ProcessingResult processPayPalWithdrawal(WithdrawalRequest request) {
+    private ProcessingResult processPayPalWithdrawal(WithdrawalRequestSimple request) {
         // Simplified PayPal processing
         ProcessingResult result = new ProcessingResult();
         result.setSuccess(true);
@@ -522,7 +517,7 @@ public class WithdrawalService {
         return result;
     }
 
-    private ProcessingResult processCryptoWithdrawal(WithdrawalRequest request) {
+    private ProcessingResult processCryptoWithdrawal(WithdrawalRequestSimple request) {
         // Simplified crypto processing
         ProcessingResult result = new ProcessingResult();
         result.setSuccess(true);
@@ -562,7 +557,7 @@ public class WithdrawalService {
         return 18.5; // hours
     }
 
-    private void sendApprovalNotifications(WithdrawalRequest request, Long approverId, boolean approved) {
+    private void sendApprovalNotifications(WithdrawalRequestSimple request, Long approverId, boolean approved) {
         if (approved) {
             notificationService.sendWithdrawalApprovedNotification(request, approverId);
         } else {
@@ -570,15 +565,15 @@ public class WithdrawalService {
         }
     }
 
-    private void sendRejectionNotifications(WithdrawalRequest request, Long approverId, String reason) {
+    private void sendRejectionNotifications(WithdrawalRequestSimple request, Long approverId, String reason) {
         notificationService.sendWithdrawalRejectedNotification(request, approverId);
     }
 
-    private void sendCompletionNotifications(WithdrawalRequest request) {
+    private void sendCompletionNotifications(WithdrawalRequestSimple request) {
         notificationService.sendWithdrawalCompletedNotification(request);
     }
 
-    private void sendFailureNotifications(WithdrawalRequest request, String errorMessage) {
+    private void sendFailureNotifications(WithdrawalRequestSimple request, String errorMessage) {
         notificationService.sendWithdrawalFailedNotification(request, errorMessage);
     }
 
@@ -716,7 +711,7 @@ public class WithdrawalService {
 
     // Request classes
     @Data
-    public static class WithdrawalRequest {
+    public static class WithdrawalRequestSimple {
         private BigDecimal amount;
         private String currency = "USD";
         private PaymentMethod paymentMethod;
@@ -809,11 +804,4 @@ public class WithdrawalService {
         public List<Approval> findByWithdrawalRequestId(Long requestId) { return new ArrayList<>(); }
     }
 
-    // Service instances
-    private final WithdrawalRequestRepository withdrawalRepository = new WithdrawalRequestRepository();
-    private final UserRepository userRepository = new UserRepository();
-    private final WalletRepository walletRepository = new WalletRepository();
-    private final ComplianceService complianceService = new ComplianceService();
-    private final NotificationService notificationService = new NotificationService();
-    private final ApprovalRepository approvalRepository = new ApprovalRepository();
 }

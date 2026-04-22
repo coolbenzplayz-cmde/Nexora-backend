@@ -3,6 +3,7 @@ package org.example.nexora.admin;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Service registry entity
@@ -12,25 +13,39 @@ public class ServiceRegistry {
     
     private Long id;
     private String serviceName;
+    private String displayName;
+    private String description;
     private String serviceType;
+    private String category;
     private String version;
-    private String status; // ACTIVE, INACTIVE, MAINTENANCE, ERROR
+    private ServiceStatus status;
     private String host;
     private int port;
+    private String serviceClass;
+    private String endpoint;
+    private String protocol;
+    private String healthCheckUrl;
+    private String metricsUrl;
+    private String[] dependencies;
     private LocalDateTime registeredAt;
     private LocalDateTime lastHeartbeat;
+    private LocalDateTime updatedAt;
     private Map<String, Object> metadata;
     private boolean healthy;
+    private Integer desiredInstances;
+    private Integer minInstances;
+    private Integer maxInstances;
+    private Integer healthCheckInterval;
     
     public ServiceRegistry() {
         this.registeredAt = LocalDateTime.now();
         this.lastHeartbeat = LocalDateTime.now();
-        this.status = "ACTIVE";
+        this.status = ServiceStatus.ACTIVE;
         this.healthy = true;
     }
     
     public boolean isHealthy() {
-        return healthy && "ACTIVE".equals(status);
+        return healthy && ServiceStatus.ACTIVE.equals(status);
     }
     
     public void updateHeartbeat() {
@@ -104,4 +119,80 @@ public class ServiceRegistry {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.registeredAt = createdAt;
     }
+    
+    public void setAutoScalingEnabled(boolean autoScalingEnabled) {
+        this.metadata.put("autoScalingEnabled", autoScalingEnabled);
+    }
+    
+    public void setMinInstances(Integer minInstances) {
+        this.metadata.put("minInstances", minInstances);
+    }
+    
+    public void setMaxInstances(Integer maxInstances) {
+        this.metadata.put("maxInstances", maxInstances);
+    }
+    
+    public void setLoadBalancerType(String loadBalancerType) {
+        this.metadata.put("loadBalancerType", loadBalancerType);
+    }
+    
+    public void setDesiredInstances(Integer desiredInstances) {
+        this.metadata.put("desiredInstances", desiredInstances);
+    }
+    
+    public void setHealthCheckInterval(Integer healthCheckInterval) {
+        this.metadata.put("healthCheckInterval", healthCheckInterval);
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+    public ServiceStatus getStatus() {
+        return status;
+    }
+    
+    public Integer getDesiredInstances() {
+        return desiredInstances != null ? desiredInstances : (Integer) metadata.get("desiredInstances");
+    }
+    
+    public String getServiceName() {
+        return serviceName;
+    }
+    
+    public void setUpdatedBy(Long updatedBy) {
+        this.metadata.put("updatedBy", updatedBy);
+    }
+    
+    public void setStatus(ServiceStatus status) {
+        this.status = status;
+    }
+    
+    public String getHealthCheckUrl() {
+        return healthCheckUrl;
+    }
+    
+    public Map<String, Object> getConfiguration() {
+        return metadata;
+    }
+    
+    public Integer getMinInstances() {
+        return minInstances != null ? minInstances : (Integer) metadata.get("minInstances");
+    }
+    
+    public Integer getMaxInstances() {
+        return maxInstances != null ? maxInstances : (Integer) metadata.get("maxInstances");
+    }
+    
+    public Boolean isAutoScalingEnabled() {
+        return (Boolean) metadata.get("autoScalingEnabled");
+    }
+}
+
+enum ServiceStatus {
+    ACTIVE, INACTIVE, MAINTENANCE, ERROR, STARTING, STOPPING, DEPRECATED
 }

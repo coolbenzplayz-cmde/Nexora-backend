@@ -1,9 +1,12 @@
 package org.example.nexora.admin.service;
 
-import org.example.nexora.admin.AdminAuthService;
+import org.example.nexora.admin.auth.AdminAuthService;
 import org.example.nexora.admin.service.ServiceManagementService;
 import org.example.nexora.user.UserRepository;
 import org.example.nexora.admin.ValidationResultSimple;
+import org.example.nexora.admin.dto.ServiceRegistrationRequestSimple;
+import org.example.nexora.admin.ServiceRegistrySimple;
+import org.example.nexora.admin.ServiceRegistry;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +45,7 @@ public class ServiceManagementService {
      * Register new service
      */
     @Transactional
-    public ServiceRegistrationResult registerService(ServiceRegistrationRequest request, Long adminId) {
+    public ServiceRegistrationResult registerService(ServiceRegistrationRequestSimple request, Long adminId) {
         log.info("Registering new service: {} by admin: {}", request.getServiceName(), adminId);
 
         try {
@@ -58,7 +61,7 @@ public class ServiceManagementService {
             }
 
             // Create service registry entry
-            ServiceRegistry service = new ServiceRegistry();
+            ServiceRegistrySimple service = new ServiceRegistrySimple();
             service.setServiceName(request.getServiceName());
             service.setDisplayName(request.getDisplayName());
             service.setDescription(request.getDescription());
@@ -69,7 +72,7 @@ public class ServiceManagementService {
             service.setEndpoint(request.getEndpoint());
             service.setPort(request.getPort());
             service.setProtocol(request.getProtocol());
-            service.setStatus(ServiceStatus.REGISTERED);
+            service.setStatus("REGISTERED");
             service.setHealthCheckUrl(request.getHealthCheckUrl());
             service.setMetricsUrl(request.getMetricsUrl());
             service.setDependencies(request.getDependencies());
@@ -199,7 +202,7 @@ public class ServiceManagementService {
             }
 
             // Remove service
-            service.setStatus(ServiceStatus.DEPRECATED);
+            service.setStatus(ServiceRegistry.ServiceStatus.DEPRECATED);
             service.setUpdatedBy(adminId);
             service.setUpdatedAt(LocalDateTime.now());
             serviceRegistryRepository.save(service);
@@ -258,7 +261,7 @@ public class ServiceManagementService {
             startDeploymentProcess(deployment, service, request);
 
             // Update service status
-            service.setStatus(ServiceStatus.DEPLOYING);
+            service.setStatus(ServiceRegistry.ServiceStatus.DEPLOYING);
             service.setUpdatedBy(adminId);
             service.setUpdatedAt(LocalDateTime.now());
             serviceRegistryRepository.save(service);
@@ -450,7 +453,7 @@ public class ServiceManagementService {
     }
 
     // Private helper methods
-    private ValidationResultSimple validateServiceRegistration(ServiceRegistrationRequest request) {
+    private ValidationResultSimple validateServiceRegistration(ServiceRegistrationRequestSimple request) {
         ValidationResultSimple result = new ValidationResultSimple();
 
         if (request.getServiceName() == null || request.getServiceName().trim().isEmpty()) {
@@ -530,7 +533,7 @@ public class ServiceManagementService {
         // Update service status
         ServiceRegistry service = serviceRegistryRepository.findById(deployment.getServiceId()).orElse(null);
         if (service != null) {
-            service.setStatus(ServiceStatus.RUNNING);
+            service.setStatus(ServiceRegistry.ServiceStatus.RUNNING);
             service.setUpdatedAt(LocalDateTime.now());
             serviceRegistryRepository.save(service);
         }
@@ -592,21 +595,21 @@ public class ServiceManagementService {
                 .collect(Collectors.toList());
     }
 
-    private ServiceStatus calculateOverallHealth(Long serviceId) {
+    private ServiceRegistry.ServiceStatus calculateOverallHealth(Long serviceId) {
         List<ServiceInstance> instances = instanceRepository.findByServiceId(serviceId);
         
         if (instances.isEmpty()) {
-            return ServiceStatus.STOPPED;
+            return ServiceRegistry.ServiceStatus.STOPPED;
         }
 
         long healthyInstances = instances.stream().mapToInt(i -> i.isHealthy() ? 1 : 0).sum();
         
         if (healthyInstances == instances.size()) {
-            return ServiceStatus.RUNNING;
+            return ServiceRegistry.ServiceStatus.RUNNING;
         } else if (healthyInstances > 0) {
-            return ServiceStatus.DEGRADED;
+            return ServiceRegistry.ServiceStatus.DEGRADED;
         } else {
-            return ServiceStatus.FAILED;
+            return ServiceRegistry.ServiceStatus.FAILED;
         }
     }
 
@@ -1031,10 +1034,7 @@ public class ServiceManagementService {
         MICROSERVICE, DATABASE, CACHE, QUEUE, SEARCH, STORAGE, MONITORING, AUTHENTICATION
     }
 
-    public enum ServiceStatus {
-        REGISTERED, DEPLOYING, RUNNING, STOPPED, FAILED, DEGRADED, DEPRECATED
-    }
-
+    
     public enum InstanceStatus {
         STARTING, RUNNING, STOPPING, TERMINATED, FAILED
     }
