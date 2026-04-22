@@ -1,0 +1,490 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - REDIS_HOST=redis
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - eureka-server
+      - redis
+      - kafka
+    networks:
+      - nexora-network
+
+  # Service Discovery
+  eureka-server:
+    build: ./discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - nexora-network
+
+  # Core Services
+  auth-service:
+    build: ./auth
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-auth
+      - DB_NAME=nexora_auth
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-auth
+    networks:
+      - nexora-network
+
+  user-service:
+    build: ./user
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-user
+      - DB_NAME=nexora_user
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+      - MONGO_HOST=mongodb-user
+      - MONGO_DB=nexora_user_mongo
+    depends_on:
+      - eureka-server
+      - postgres-user
+      - mongodb-user
+    networks:
+      - nexora-network
+
+  search-service:
+    build: ./search
+    ports:
+      - "8083:8083"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - ELASTICSEARCH_HOSTS=elasticsearch:9200
+    depends_on:
+      - eureka-server
+      - elasticsearch
+    networks:
+      - nexora-network
+
+  # Specialized Microservices
+  ride-service:
+    build: ./microservices/ride
+    ports:
+      - "8084:8084"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-ride
+      - DB_NAME=nexora_ride
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-ride
+    networks:
+      - nexora-network
+
+  food-service:
+    build: ./microservices/food
+    ports:
+      - "8085:8085"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-food
+      - DB_NAME=nexora_food
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-food
+    networks:
+      - nexora-network
+
+  wallet-service:
+    build: ./microservices/wallet
+    ports:
+      - "8086:8086"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-wallet
+      - DB_NAME=nexora_wallet
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-wallet
+    networks:
+      - nexora-network
+
+  chat-service:
+    build: ./microservices/chat
+    ports:
+      - "8087:8087"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-chat
+      - DB_NAME=nexora_chat
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+      - MONGO_HOST=mongodb-chat
+      - MONGO_DB=nexora_chat_mongo
+    depends_on:
+      - eureka-server
+      - postgres-chat
+      - mongodb-chat
+    networks:
+      - nexora-network
+
+  games-service:
+    build: ./microservices/games
+    ports:
+      - "8088:8088"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-games
+      - DB_NAME=nexora_games
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-games
+    networks:
+      - nexora-network
+
+  media-service:
+    build: ./microservices/media
+    ports:
+      - "8089:8089"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-media
+      - DB_NAME=nexora_media
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+      - STORAGE_HOST=minio
+    depends_on:
+      - eureka-server
+      - postgres-media
+      - minio
+    networks:
+      - nexora-network
+
+  delivery-service:
+    build: ./microservices/delivery
+    ports:
+      - "8090:8090"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-delivery
+      - DB_NAME=nexora_delivery
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-delivery
+    networks:
+      - nexora-network
+
+  ai-service:
+    build: ./microservices/ai
+    ports:
+      - "8091:8091"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-ai
+      - DB_NAME=nexora_ai
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-ai
+    networks:
+      - nexora-network
+
+  shopping-service:
+    build: ./microservices/shopping
+    ports:
+      - "8092:8092"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - DB_HOST=postgres-shopping
+      - DB_NAME=nexora_shopping
+      - DB_USER=nexora
+      - DB_PASSWORD=password123
+    depends_on:
+      - eureka-server
+      - postgres-shopping
+    networks:
+      - nexora-network
+
+  # WebSocket Service
+  websocket-service:
+    build: ./websocket
+    ports:
+      - "8093:8093"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761
+      - REDIS_HOST=redis
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - eureka-server
+      - redis
+      - kafka
+    networks:
+      - nexora-network
+
+  # Databases
+  postgres-auth:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_auth
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-user:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_user
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-ride:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_ride
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-ride-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-food:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_food
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-food-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-wallet:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_wallet
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-wallet-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-chat:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_chat
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-chat-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-games:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_games
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-games-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-media:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_media
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-media-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-delivery:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_delivery
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-delivery-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-ai:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_ai
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-ai-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  postgres-shopping:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=nexora_shopping
+      - POSTGRES_USER=nexora
+      - POSTGRES_PASSWORD=password123
+    volumes:
+      - postgres-shopping-data:/var/lib/postgresql/data
+    networks:
+      - nexora-network
+
+  # MongoDB for unstructured data
+  mongodb-user:
+    image: mongo:6
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=nexora
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=nexora_user_mongo
+    volumes:
+      - mongodb-user-data:/data/db
+    networks:
+      - nexora-network
+
+  mongodb-chat:
+    image: mongo:6
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=nexora
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=nexora_chat_mongo
+    volumes:
+      - mongodb-chat-data:/data/db
+    networks:
+      - nexora-network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - nexora-network
+
+  # Kafka for event streaming
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    networks:
+      - nexora-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - nexora-network
+
+  # Elasticsearch for search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - nexora-network
+
+  # MinIO for object storage
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=nexora
+      - MINIO_ROOT_PASSWORD=password123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - nexora-network
+
+  # Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - api-gateway
+    networks:
+      - nexora-network
+
+volumes:
+  postgres-auth-data:
+  postgres-user-data:
+  postgres-ride-data:
+  postgres-food-data:
+  postgres-wallet-data:
+  postgres-chat-data:
+  postgres-games-data:
+  postgres-media-data:
+  postgres-delivery-data:
+  postgres-ai-data:
+  postgres-shopping-data:
+  mongodb-user-data:
+  mongodb-chat-data:
+  redis-data:
+  zookeeper-data:
+  kafka-data:
+  elasticsearch-data:
+  minio-data:
+
+networks:
+  nexora-network:
+    driver: bridge

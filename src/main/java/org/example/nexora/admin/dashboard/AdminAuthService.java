@@ -57,4 +57,48 @@ public class AdminAuthService {
         private LocalDateTime timestamp;
         private String details;
     }
+
+    /**
+     * Admin session entity
+     */
+    @Data
+    public static class AdminSession {
+        private String sessionId;
+        private String username;
+        private LocalDateTime createdAt;
+        private LocalDateTime expiresAt;
+        private boolean active;
+        private String ipAddress;
+        
+        public AdminSession() {
+            this.createdAt = LocalDateTime.now();
+            this.expiresAt = LocalDateTime.now().plusHours(8);
+            this.active = true;
+        }
+        
+        public boolean isExpired() {
+            return LocalDateTime.now().isAfter(expiresAt);
+        }
+    }
+
+    /**
+     * Security alert entity
+     */
+    @Data
+    public static class SecurityAlert {
+        private Long id;
+        private String type;
+        private String message;
+        private String severity; // LOW, MEDIUM, HIGH, CRITICAL
+        private LocalDateTime timestamp;
+        private boolean resolved;
+        private String resolvedBy;
+        private LocalDateTime resolvedAt;
+        
+        public SecurityAlert() {
+            this.timestamp = LocalDateTime.now();
+            this.resolved = false;
+            this.severity = "MEDIUM";
+        }
+    }
 }

@@ -885,5 +885,16 @@ public class VideoCallService {
         AUDIO, VIDEO, SCREEN_SHARE
     }
 
+    /**
+     * ICE Candidate for WebRTC
+     */
+    @Data
+    public static class ICECandidate {
+        private String candidate;
+        private String sdpMid;
+        private int sdpMLineIndex;
+        private String usernameFragment;
+    }
+
     // Service instances - duplicates removed
 }

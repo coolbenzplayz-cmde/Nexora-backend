@@ -36,7 +36,7 @@ public class WithdrawalService {
     /**
      * Create withdrawal request
      */
-    public WithdrawalRequestResult createWithdrawalRequest(Long userId, WithdrawalRequest request) {
+    public WithdrawalRequestResultSimple createWithdrawalRequest(Long userId, WithdrawalRequestSimple request) {
         log.info("Creating withdrawal request for user {} amount: {}", userId, request.getAmount());
 
         try {
@@ -48,24 +48,24 @@ public class WithdrawalService {
                     .orElseThrow(() -> new IllegalStateException("Wallet not found"));
 
             // Validate request
-            ValidationResult validation = validateWithdrawalRequest(user, wallet, request);
+            ValidationResultSimple validation = validateWithdrawalRequest(request);
             if (!validation.isValid()) {
-                return WithdrawalRequestResult.failure(validation.getErrors());
+                return WithdrawalRequestResultSimple.failure(validation.getErrors());
             }
 
             // Compliance check
-            ComplianceCheckResult complianceCheck = complianceService.checkWithdrawalCompliance(userId, request);
+            ComplianceCheckResultSimple complianceCheck = complianceService.checkWithdrawalCompliance(userId, request);
             if (!complianceCheck.isApproved()) {
-                return WithdrawalRequestResult.failure("Compliance check failed: " + complianceCheck.getReason());
+                return WithdrawalRequestResultSimple.failure("Compliance check failed: " + complianceCheck.getReason());
             }
 
             // Check daily/weekly limits
             if (!checkWithdrawalLimits(userId, request.getAmount())) {
-                return WithdrawalRequestResult.failure("Withdrawal amount exceeds limits");
+                return WithdrawalRequestResultSimple.failure("Withdrawal amount exceeds limits");
             }
 
             // Create withdrawal request
-            WithdrawalRequest withdrawal = new WithdrawalRequest();
+            WithdrawalRequestSimple withdrawal = new WithdrawalRequestSimple();
             withdrawal.setUserId(userId);
             withdrawal.setAmount(request.getAmount());
             withdrawal.setCurrency(request.getCurrency());
@@ -82,6 +82,12 @@ public class WithdrawalService {
             withdrawal.setFee(fee);
             withdrawal.setNetAmount(request.getAmount().subtract(fee));
 
+            // Save withdrawal request
+            WithdrawalRequestResultSimple result = new WithdrawalRequestResultSimple();
+            result.setSuccess(true);
+            result.setWithdrawalRequest(withdrawal);
+            result.setEstimatedProcessingTime(withdrawal.getEstimatedProcessingTime());
+
             // Save request
             withdrawal = withdrawalRepository.save(withdrawal);
 
@@ -94,23 +100,18 @@ public class WithdrawalService {
             // Send notifications
             sendWithdrawalNotifications(withdrawal, user);
 
-            WithdrawalRequestResult result = new WithdrawalRequestResult();
-            result.setSuccess(true);
-            result.setWithdrawalRequest(withdrawal);
-            result.setEstimatedProcessingTime(withdrawal.getEstimatedProcessingTime());
-
             return result;
 
         } catch (Exception e) {
             log.error("Failed to create withdrawal request for user {}", userId, e);
-            return WithdrawalRequestResult.failure("Failed to create withdrawal request: " + e.getMessage());
+            return WithdrawalRequestResultSimple.failure("Failed to create withdrawal request: " + e.getMessage());
         }
     }
 
     /**
      * Get user withdrawal requests
      */
-    public List<WithdrawalRequest> getUserWithdrawalRequests(Long userId, WithdrawalStatus status, int limit) {
+    public List<WithdrawalRequestSimple> getUserWithdrawalRequests(Long userId, WithdrawalStatus status, int limit) {
         return withdrawalRepository.findByUserIdAndStatus(userId, status, limit);
     }
 
