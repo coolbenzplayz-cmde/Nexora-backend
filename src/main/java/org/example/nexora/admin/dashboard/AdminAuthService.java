@@ -101,4 +101,26 @@ public class AdminAuthService {
             this.severity = "MEDIUM";
         }
     }
+
+    /**
+     * System statistics entity
+     */
+    @Data
+    public static class SystemStatistics {
+        private long totalUsers;
+        private long activeUsers;
+        private long totalServices;
+        private long activeServices;
+        private long systemUptime;
+        private double cpuUsage;
+        private double memoryUsage;
+        private LocalDateTime lastUpdated;
+        
+        public SystemStatistics() {
+            this.lastUpdated = LocalDateTime.now();
+            this.systemUptime = 0;
+            this.cpuUsage = 0.0;
+            this.memoryUsage = 0.0;
+        }
+    }
 }

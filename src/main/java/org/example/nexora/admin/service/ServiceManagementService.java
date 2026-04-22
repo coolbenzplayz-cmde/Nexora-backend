@@ -1084,6 +1084,22 @@ public class ServiceManagementService {
         public AdminAuditLog save(AdminAuditLog log) { return log; }
     }
 
+    /**
+     * Service type enum
+     */
+    public enum ServiceType {
+        MICROSERVICE,
+        DATABASE,
+        CACHE,
+        MESSAGE_QUEUE,
+        API_GATEWAY,
+        LOAD_BALANCER,
+        MONITORING,
+        LOGGING,
+        SECURITY,
+        STORAGE
+    }
+
     // Service instances - duplicates removed
 }
 
