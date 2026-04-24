@@ -61,21 +61,20 @@ public class ServiceManagementService {
             }
 
             // Create service registry entry
-            ServiceRegistrySimple service = new ServiceRegistrySimple();
+            ServiceRegistry service = new ServiceRegistry();
             service.setServiceName(request.getServiceName());
             service.setDisplayName(request.getDisplayName());
             service.setDescription(request.getDescription());
-            service.setServiceType(request.getServiceType());
+            service.setServiceType(parseServiceType(request.getServiceType()));
             service.setCategory(request.getCategory());
             service.setVersion(request.getVersion());
             service.setServiceClass(request.getServiceClass());
             service.setEndpoint(request.getEndpoint());
             service.setPort(request.getPort());
             service.setProtocol(request.getProtocol());
-            service.setStatus("REGISTERED");
+            service.setStatus(ServiceRegistry.ServiceStatus.INACTIVE);
             service.setHealthCheckUrl(request.getHealthCheckUrl());
             service.setMetricsUrl(request.getMetricsUrl());
-            service.setDependencies(request.getDependencies());
             service.setConfiguration(request.getConfiguration());
             service.setCreatedBy(adminId);
             service.setCreatedAt(LocalDateTime.now());
@@ -86,7 +85,6 @@ public class ServiceManagementService {
             service.setMaxInstances(request.getMaxInstances() != null ? request.getMaxInstances() : 10);
             service.setDesiredInstances(request.getDesiredInstances() != null ? request.getDesiredInstances() : 1);
             service.setHealthCheckInterval(request.getHealthCheckInterval() != null ? request.getHealthCheckInterval() : 30);
-            service.setHealthCheckTimeout(request.getHealthCheckTimeout() != null ? request.getHealthCheckTimeout() : 5);
 
             service = serviceRegistryRepository.save(service);
 
@@ -155,8 +153,8 @@ public class ServiceManagementService {
             if (request.getDesiredInstances() != null) {
                 service.setDesiredInstances(request.getDesiredInstances());
             }
-            if (request.isAutoScalingEnabled() != null) {
-                service.setAutoScalingEnabled(request.isAutoScalingEnabled());
+            if (request.getAutoScalingEnabled() != null) {
+                service.setAutoScalingEnabled(request.getAutoScalingEnabled());
             }
 
             service.setUpdatedBy(adminId);
@@ -282,19 +280,19 @@ public class ServiceManagementService {
      */
     @Transactional
     public ServiceScalingResult scaleService(Long serviceId, ServiceScalingRequest request, Long adminId) {
-        log.info("Scaling service: {} to {} instances by admin: {}", serviceId, request.getTargetInstances, adminId);
+        log.info("Scaling service: {} to {} instances by admin: {}", serviceId, request.getTargetInstances(), adminId);
 
         try {
             ServiceRegistry service = serviceRegistryRepository.findById(serviceId)
                     .orElseThrow(() -> new ServiceManagementException("Service not found"));
 
             // Validate scaling request
-            if (request.getTargetInstances < service.getMinInstances() || request.getTargetInstances > service.getMaxInstances()) {
+            if (request.getTargetInstances() < service.getMinInstances() || request.getTargetInstances() > service.getMaxInstances()) {
                 return ServiceScalingResult.failure("Target instances must be between " + service.getMinInstances() + " and " + service.getMaxInstances());
             }
 
             int currentInstances = instanceRepository.countByServiceIdAndStatus(serviceId, InstanceStatus.RUNNING);
-            int instancesToAdd = request.getTargetInstances - currentInstances;
+            int instancesToAdd = request.getTargetInstances() - currentInstances;
 
             if (instancesToAdd == 0) {
                 return ServiceScalingResult.success("Service already has " + currentInstances + " instances");
@@ -308,17 +306,17 @@ public class ServiceManagementService {
             }
 
             // Update desired instances
-            service.setDesiredInstances(request.getTargetInstances);
+            service.setDesiredInstances(request.getTargetInstances());
             service.setUpdatedBy(adminId);
             service.setUpdatedAt(LocalDateTime.now());
             serviceRegistryRepository.save(service);
 
             // Log scaling
             logServiceAction(adminId, "SERVICE_SCALED", 
-                           "Scaled service: " + service.getServiceName() + " from " + currentInstances + " to " + request.getTargetInstances + " instances", 
+                           "Scaled service: " + service.getServiceName() + " from " + currentInstances + " to " + request.getTargetInstances() + " instances", 
                            serviceId);
 
-            return ServiceScalingResult.success("Service scaled to " + request.getTargetInstances + " instances");
+            return ServiceScalingResult.success("Service scaled to " + request.getTargetInstances() + " instances");
 
         } catch (Exception e) {
             log.error("Failed to scale service: {}", serviceId, e);
@@ -453,6 +451,15 @@ public class ServiceManagementService {
     }
 
     // Private helper methods
+    private ServiceType parseServiceType(String serviceType) {
+        if (serviceType == null || serviceType.trim().isEmpty()) return null;
+        try {
+            return ServiceType.valueOf(serviceType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private ValidationResultSimple validateServiceRegistration(ServiceRegistrationRequestSimple request) {
         ValidationResultSimple result = new ValidationResultSimple();
 
@@ -468,7 +475,7 @@ public class ServiceManagementService {
             result.addError("Service endpoint is required");
         }
 
-        if (request.getPort() == null || request.getPort() < 1 || request.getPort() > 65535) {
+        if (request.getPort() < 1 || request.getPort() > 65535) {
             result.addError("Valid port is required");
         }
 
@@ -503,7 +510,7 @@ public class ServiceManagementService {
         return result;
     }
 
-    private void createDefaultConfiguration(ServiceRegistry service, ServiceRegistrationRequest request) {
+    private void createDefaultConfiguration(ServiceRegistry service, ServiceRegistrationRequestSimple request) {
         ServiceConfiguration config = new ServiceConfiguration();
         config.setServiceId(service.getId());
         config.setConfigKey("default");
@@ -805,7 +812,7 @@ public class ServiceManagementService {
     public static class ServiceHealthStatus {
         private Long serviceId;
         private String serviceName;
-        private ServiceStatus overallStatus;
+        private ServiceRegistry.ServiceStatus overallStatus;
         private int totalInstances;
         private int healthyInstances;
         private int unhealthyInstances;
@@ -913,7 +920,7 @@ public class ServiceManagementService {
     @Data
     public static class ServiceFilter {
         private String category;
-        private ServiceStatus status;
+        private ServiceRegistry.ServiceStatus status;
         private ServiceType serviceType;
         private String environment;
     }
@@ -929,6 +936,12 @@ public class ServiceManagementService {
     // Entity classes
     @Data
     public static class ServiceRegistry {
+
+        public enum ServiceStatus {
+            ACTIVE, INACTIVE, DEPLOYING, DEPRECATED, FAILED,
+            RUNNING, STOPPED, DEGRADED, MAINTENANCE, ERROR, STARTING, STOPPING
+        }
+
         private Long id;
         private String serviceName;
         private String displayName;
@@ -1086,22 +1099,6 @@ public class ServiceManagementService {
 
     private static class AdminAuditLogRepository {
         public AdminAuditLog save(AdminAuditLog log) { return log; }
-    }
-
-    /**
-     * Service type enum
-     */
-    public enum ServiceType {
-        MICROSERVICE,
-        DATABASE,
-        CACHE,
-        MESSAGE_QUEUE,
-        API_GATEWAY,
-        LOAD_BALANCER,
-        MONITORING,
-        LOGGING,
-        SECURITY,
-        STORAGE
     }
 
     // Service instances - duplicates removed
